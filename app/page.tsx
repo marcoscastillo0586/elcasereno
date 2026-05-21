@@ -1,10 +1,32 @@
 'use client'
 
-import { useState } from 'react'
-import { Menu, X, Phone, Mail, MapPin, Truck, Clock, Users, ChevronRight, CheckCircle } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Menu, X, Phone, Mail, MapPin, Truck, Clock, Users, ChevronRight, CheckCircle, Facebook, Instagram } from 'lucide-react'
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [currentClientIndex, setCurrentClientIndex] = useState(0)
+  const totalClients = 9
+
+  // Auto-play carousel every 4 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentClientIndex((prevIndex) => (prevIndex + 1) % totalClients)
+    }, 4000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const nextClient = () => {
+    setCurrentClientIndex((prevIndex) => (prevIndex + 1) % totalClients)
+  }
+
+  const prevClient = () => {
+    setCurrentClientIndex((prevIndex) => (prevIndex - 1 + totalClients) % totalClients)
+  }
+
+  const goToClient = (index: number) => {
+    setCurrentClientIndex(index)
+  }
 
   const services = [
     {
@@ -33,11 +55,11 @@ export default function Home() {
   ]
 
   const features = [
-    "Más de 15 años de experiencia",
+    "Más de 19 años de experiencia",
+    "Responsabilidad",
+    "Seriedad",
     "Cobertura nacional",
-    "Flota moderna y mantenida",
-    "Seguro de carga completo",
-    "Seguimiento online 24/7",
+    "Honestidad",
     "Atención personalizada"
   ]
 
@@ -63,9 +85,6 @@ export default function Home() {
                 <a href="#servicios" className="text-white hover:text-yellow-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">Servicios</a>
                 <a href="#nosotros" className="text-white hover:text-yellow-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">Nosotros</a>
                 <a href="#contacto" className="text-white hover:text-yellow-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">Contacto</a>
-                <button className="bg-yellow-400 text-black px-4 py-2 rounded-lg font-semibold hover:bg-yellow-300 transition-colors ml-4">
-                  Cotizar ahora
-                </button>
               </div>
             </div>
             
@@ -116,11 +135,9 @@ export default function Home() {
               Conectamos tu negocio con destino seguro y puntual. Más de 15 años de experiencia en transporte nacional de cargas.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <button className="bg-yellow-400 text-black px-10 py-4 rounded-lg font-bold text-lg hover:bg-yellow-300 transition-all transform hover:scale-105 shadow-xl">
-                Solicitar Cotización
-              </button>
+            
               <button className="border-2 border-yellow-400 text-yellow-400 px-10 py-4 rounded-lg font-bold text-lg hover:bg-yellow-400 hover:text-black transition-all transform hover:scale-105">
-                Ver Servicios
+               <a href="#servicios"> Ver Servicios</a>
               </button>
             </div>
           </div>
@@ -172,7 +189,9 @@ export default function Home() {
                 Sobre El Casereño
               </h2>
               <p className="text-lg text-gray-600 mb-6">
-                Desde hace más de 15 años, en El Casereño nos dedicamos al transporte de cargas con un compromiso inquebrantable con la seguridad y puntualidad.
+                Nacimos en 2007 en Monte Caseros, Corrientes, como una empresa familiar con sólidas raíces en la industria supermercadista. Desde nuestros inicios, nos hemos consolidado en el sector bajo tres pilares fundamentales: seriedad, honestidad y responsabilidad.
+                Hoy contamos con una infraestructura robusta de más de 55 unidades equipadas con tecnología de frío Carrier de nueva generación, lo que nos permite garantizar la máxima eficiencia, seguridad y calidad en cada uno de nuestros servicios
+ 
               </p>
               <p className="text-lg text-gray-600 mb-8">
                 Nuestra experiencia nos permite ofrecer soluciones logísticas integrales, conectando los principales centros productivos del país con destino garantizado.
@@ -208,7 +227,82 @@ export default function Home() {
                   </div>
                   <div className="flex items-center">
                     <ChevronRight className="w-5 h-5 mr-2 flex-shrink-0 text-yellow-400" />
-                    <span className="text-sm">Seguro Completo</span>
+                    <span className="text-sm">Atención Personalizada</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* History Section */}
+      <section className="py-20 bg-yellow-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 text-right">
+                Un poco de<br />
+                <span className="text-yellow-500">nuestra historia</span>
+              </h2>
+              <div className="w-20 h-1 bg-yellow-400 mb-8 ml-auto"></div>
+              
+              <div className="space-y-6 text-gray-700 leading-relaxed">
+                <p className="text-lg">
+                  Transporte El Casereño S.A. es una empresa relativamente joven -con 18 años de vida formal- pero con raíces que se remontan aún más atrás, a la pasión, el empuje y la visión de un hombre decidido a transformar la logística de frutas finas en nuestro país.
+                </p>
+                
+                <p className="text-lg">
+                  Nuestro fundador, el señor <strong>José Luis Gorbeña</strong>, oriundo de Monte Caseros, Corrientes, descubrió que en Concordia se cultivaban arándanos de la más alta calidad. Es una fruta delicada, que exigía un transporte extremadamente cuidadoso y veloz hasta el Aeropuerto Internacional de Ezeiza.
+                </p>
+                
+                <p className="text-lg">
+                  Con apenas tres camiones de pequeño porte, se presentó ante la firma <strong>BLUEBERRIES</strong> en la Ruta Nacional Nº 14. Allí, con coraje y profesionalismo, logró ganarse la confianza de sus directivos.
+                </p>
+                
+                <p className="text-lg">
+                  El crecimiento fue exponencial. A medida que la demanda aumentaba, asumimos el desafío de contratar fleteros de diversas provincias, decididos a no renunciar a nuestro compromiso con el cliente.
+                </p>
+                
+                <p className="text-lg">
+                  En <strong>2007</strong> nació formalmente <strong>Transporte El Casereño S.A.</strong> con el apoyo incondicional de su hijo José Luis y el esfuerzo diario de conductores y equipo administrativo.
+                </p>
+              </div>
+            </div>
+            
+            <div className="relative">
+              <div className="bg-white rounded-lg shadow-xl p-8">
+                <div className="grid grid-cols-1 gap-6">
+                  <div className="flex items-center space-x-4 p-4 bg-yellow-50 rounded-lg">
+                    <div className="text-5xl font-bold text-yellow-500">2007</div>
+                    <div className="text-gray-700">
+                      <div className="font-semibold">Año de fundación</div>
+                      <div className="text-sm">Nacimiento formal de la empresa</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-4 p-4 bg-yellow-50 rounded-lg">
+                    <div className="text-5xl font-bold text-yellow-500">18+</div>
+                    <div className="text-gray-700">
+                      <div className="font-semibold">Años de experiencia</div>
+                      <div className="text-sm">Trayectoria consolidada</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-4 p-4 bg-yellow-50 rounded-lg">
+                    <div className="text-5xl font-bold text-yellow-500">55+</div>
+                    <div className="text-gray-700">
+                      <div className="font-semibold">Unidades en flota</div>
+                      <div className="text-sm">Tecnología Carrier de última generación</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-4 p-4 bg-yellow-50 rounded-lg">
+                    <div className="text-5xl font-bold text-yellow-500">3</div>
+                    <div className="text-gray-700">
+                      <div className="font-semibold">Camiones iniciales</div>
+                      <div className="text-sm">El inicio de nuestra historia</div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -273,6 +367,68 @@ export default function Home() {
                   Neuquén, Río Negro, Chubut, Santa Cruz, Tierra del Fuego
                 </p>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Clients Carousel Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Clientes que confían en nosotros
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Empresas líderes que eligen nuestros servicios de transporte
+            </p>
+          </div>
+
+          <div className="relative max-w-4xl mx-auto">
+            <div className="relative overflow-hidden rounded-lg shadow-xl bg-gray-50" style={{ minHeight: '600px' }}>
+              <div 
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{ transform: `translateX(-${currentClientIndex * 100}%)` }}
+              >
+                {Array.from({ length: totalClients }, (_, index) => (
+                  <div key={index} className="w-full flex-shrink-0 flex items-center justify-center p-16" style={{ minHeight: '600px' }}>
+                    <img 
+                      src={`/images/clientes/${String(index + 1).padStart(2, '0')}.png`}
+                      alt={`Cliente ${index + 1}`}
+                      className="max-h-[500px] w-auto object-contain"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Navigation Buttons */}
+            <button 
+              onClick={prevClient}
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-yellow-400 hover:bg-yellow-300 text-black p-3 rounded-full shadow-lg transition-colors duration-300 z-10"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button 
+              onClick={nextClient}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-yellow-400 hover:bg-yellow-300 text-black p-3 rounded-full shadow-lg transition-colors duration-300 z-10"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+            
+            {/* Navigation Dots */}
+            <div className="flex justify-center mt-6 space-x-2">
+              {Array.from({ length: totalClients }, (_, index) => (
+                <button
+                  key={index}
+                  className={`w-2 h-2 rounded-full transition-colors duration-300 ${index === currentClientIndex ? 'bg-yellow-400' : 'bg-gray-300 hover:bg-yellow-400'}`}
+                  onClick={() => goToClient(index)}
+                />
+              ))}
             </div>
           </div>
         </div>
@@ -373,8 +529,7 @@ export default function Home() {
                     <Mail className="w-6 h-6 text-yellow-400 mr-4" />
                     <div>
                       <p className="font-semibold text-gray-900">Email</p>
-                      <p className="text-gray-600">info@elcasereno.com.ar</p>
-                      <p className="text-gray-600">cotizaciones@elcasereno.com.ar</p>
+                      <p className="text-gray-600">josegorbena@grupo-jlg.com</p>
                     </div>
                   </div>
                   
@@ -383,6 +538,36 @@ export default function Home() {
                     <div>
                       <p className="font-semibold text-gray-900">Dirección</p>
                       <p className="text-gray-600">av. Libertador 1280, Monte Caseros, Corrientes 3220</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <Facebook className="w-6 h-6 text-yellow-400 mr-4" />
+                    <div>
+                      <p className="font-semibold text-gray-900">Facebook</p>
+                      <a 
+                        href="https://www.facebook.com/p/Transporte-El-Casere%C3%B1o-SA-100063768003262/" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-gray-600 hover:text-yellow-400 transition-colors"
+                      >
+                        Transporte El Casereño SA
+                      </a>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <Instagram className="w-6 h-6 text-yellow-400 mr-4" />
+                    <div>
+                      <p className="font-semibold text-gray-900">Instagram</p>
+                      <a 
+                        href="https://www.instagram.com/transporte.casereno.sa/?hl=es" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-gray-600 hover:text-yellow-400 transition-colors"
+                      >
+                        @transporte.casereno.sa
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -471,6 +656,7 @@ export default function Home() {
               <p className="text-gray-400">
                 Tu socio confiable en transporte de cargas a nivel nacional.
               </p>
+              
             </div>
             
             <div>
@@ -497,14 +683,15 @@ export default function Home() {
               <h4 className="text-lg font-semibold mb-4">Contacto</h4>
               <div className="space-y-2 text-gray-400">
                 <p>03775 15-63-8819 </p>
-                <p>info@elcasereno.com.ar</p>
+                <p>josegorbena@grupo-jlg.com</p>
                 <p>av. Libertador 1280, Monte Caseros, Corrientes 3220</p>
               </div>
             </div>
           </div>
           
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2026 Código20 : : : Todos los derechos reservados.</p>
+            <p>&copy; 2026 Código20 : : : Todos los derechos reservados.</p> 
+            <p className="text-gray-400"> Administrar </p>
           </div>
         </div>
       </footer>
