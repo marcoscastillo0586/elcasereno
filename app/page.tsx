@@ -313,7 +313,7 @@ export default function Home() {
             </div>
             <div className="relative">
               <div className="absolute -inset-3 bg-yellow-400 rounded-3xl opacity-10 blur-sm"></div>
-              <img src="/images/casereno-flota.jpg.jpeg" alt="Flota El Casereño" className="relative rounded-2xl w-full h-[440px] object-cover shadow-2xl" />
+              <img src="/images/casereno-flota.png" alt="Flota El Casereño" className="relative rounded-2xl w-full h-[440px] object-cover shadow-2xl" />
               <div className="absolute -bottom-5 -right-5 bg-yellow-400 text-black rounded-2xl p-5 shadow-2xl">
                 <span className="text-4xl font-black block leading-none">18+</span>
                 <span className="text-xs font-bold uppercase tracking-wider mt-1 block">años de experiencia</span>
