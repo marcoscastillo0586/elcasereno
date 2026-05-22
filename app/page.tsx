@@ -1,720 +1,628 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Menu, X, Phone, Mail, MapPin, Truck, Clock, Users, ChevronRight, CheckCircle, Facebook, Instagram } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Menu, X, CheckCircle, Thermometer, Globe, Shield, Clock, Users, Star } from 'lucide-react'
+import MapArgentina from './components/MapArgentina'
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [currentClientIndex, setCurrentClientIndex] = useState(0)
-  const totalClients = 9
+  const [visibleItems, setVisibleItems] = useState<Set<number>>(new Set())
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([])
+  const [statsVisible, setStatsVisible] = useState(false)
+  const statsRef = useRef<HTMLDivElement>(null)
+  const [counters, setCounters] = useState({ units: 0, years: 0, offices: 0, countries: 0 })
 
-  // Auto-play carousel every 4 seconds
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentClientIndex((prevIndex) => (prevIndex + 1) % totalClients)
-    }, 4000)
-    return () => clearInterval(interval)
+    const check = () => {
+      itemRefs.current.forEach((ref, index) => {
+        if (!ref || visibleItems.has(index)) return
+        const rect = ref.getBoundingClientRect()
+        if (rect.top < window.innerHeight - 60) {
+          setVisibleItems(prev => new Set(Array.from(prev).concat(index)))
+        }
+      })
+    }
+    window.addEventListener('scroll', check, { passive: true })
+    check()
+    return () => window.removeEventListener('scroll', check)
+  }, [visibleItems])
+
+  useEffect(() => {
+    const check = () => {
+      const el = statsRef.current
+      if (!el) return
+      const rect = el.getBoundingClientRect()
+      if (rect.top < window.innerHeight) {
+        setStatsVisible(true)
+        window.removeEventListener('scroll', check)
+      }
+    }
+    window.addEventListener('scroll', check, { passive: true })
+    check()
+    return () => window.removeEventListener('scroll', check)
   }, [])
 
-  const nextClient = () => {
-    setCurrentClientIndex((prevIndex) => (prevIndex + 1) % totalClients)
-  }
+  useEffect(() => {
+    if (!statsVisible) return
+    const targets = { units: 55, years: 18, offices: 3, countries: 4 }
+    let animTimer: ReturnType<typeof setInterval>
+    let loopTimer: ReturnType<typeof setInterval>
 
-  const prevClient = () => {
-    setCurrentClientIndex((prevIndex) => (prevIndex - 1 + totalClients) % totalClients)
-  }
-
-  const goToClient = (index: number) => {
-    setCurrentClientIndex(index)
-  }
-
-  const services = [
-    {
-    
-      title: "Transporte de Cargas Generales",
-      description: "Movemos tu mercadería con seguridad y eficiencia a cualquier punto del país.",
-      image: "/images/casereno2.png"
-    },
-    {
-      title: "Carga Refrigerada",
-      description: "Transporte especializado para productos que requieren cadena de frío.",
-      image: "/images/casereno3.png"
-    },
-    {
-     
-      title: "Servicio Express",
-      description: "Entregas urgentes con prioridad y seguimiento en tiempo real.",
-      image: "/images/casereno4.png"
-    },
-    {
-      
-      title: "Logística Integral",
-      description: "Soluciones completas de almacenamiento y distribución.",
-      image: "/images/casereno5.png"
+    const runAnimation = () => {
+      setCounters({ units: 0, years: 0, offices: 0, countries: 0 })
+      const steps = 60
+      const intervalMs = 2000 / steps
+      let step = 0
+      clearInterval(animTimer)
+      animTimer = setInterval(() => {
+        step++
+        const p = step / steps
+        const ease = 1 - Math.pow(1 - p, 3)
+        setCounters({
+          units: Math.round(targets.units * ease),
+          years: Math.round(targets.years * ease),
+          offices: Math.round(targets.offices * ease),
+          countries: Math.round(targets.countries * ease),
+        })
+        if (step >= steps) clearInterval(animTimer)
+      }, intervalMs)
     }
-  ]
+
+    runAnimation()
+    loopTimer = setInterval(runAnimation, 9000)
+    return () => { clearInterval(animTimer); clearInterval(loopTimer) }
+  }, [statsVisible])
 
   const features = [
-    "Más de 19 años de experiencia",
-    "Responsabilidad",
-    "Seriedad",
-    "Cobertura nacional",
-    "Honestidad",
-    "Atención personalizada"
+    "18 años de experiencia",
+    "Cobertura nacional e internacional",
+    "Más de 55 unidades térmicas Carrier",
+    "Seguro de carga completo",
+    "Empresa familiar con compromiso",
+    "Atención personalizada",
+    "Documentación internacional vigente",
+  ]
+
+  const timeline = [
+    { year: '1983', title: 'Grupo JLG', desc: 'Fundación del Autoservicio y Supermercado por José Luis Gorbeña y Verónica Roverano' },
+    { year: '2006', title: 'Primeros camiones', desc: 'Foco en distribución de arándanos con 2 camiones desde Concordia' },
+    { year: '2007', title: 'Nace El Casereño', desc: 'Fundación formal de Transporte El Casereño S.A. con 4 unidades en Monte Caseros' },
+    { year: '2009', title: 'Expansión Brasil', desc: 'Inicio de operaciones de logística internacional con Brasil' },
+    { year: '2012', title: 'Región ampliada', desc: 'Expansión a Uruguay, Chile y Paraguay. Fortalecimiento logística nacional' },
+    { year: '2017', title: '+30 unidades', desc: 'Crecimiento sostenido de la flota a más de 30 unidades' },
+    { year: '2023', title: 'Nueva sede central', desc: 'Inauguración de la nueva casa central en Monte Caseros, Corrientes' },
+    { year: '2024', title: '+55 unidades', desc: 'Flota de más de 55 unidades modernas con equipo frío Carrier' },
+    { year: '2025', title: 'Seguimos creciendo', desc: 'Nuevo centro de distribución en Riachuelo y sede en Ezeiza, Buenos Aires' },
+  ]
+
+  const clients = [
+    'Soychú', 'CCAM', 'PuroSol', 'Tonadita', 'Surfrigo', 'Dass', 'Fepasa', 'Trégar', 'Don Satur',
+    'GrupoHenn', 'ExpoVerde', 'Granja Tres Arroyos', 'Citric', 'Las Camelias SA', 'Lario', 'Fadel',
+    'Gramm', 'Eca', 'Tasa Logística', 'San Francisco', 'Silvestrin', 'Jauser', 'Grimoldi',
+    'Los Azahares SA', 'Litoral Citrus SA', 'El Paruco', 'Gamorel', 'Arsa', 'Eriochem SA',
+    'Fama', 'Grupo de Narvaez', 'Grupodelplata', 'Jucofer', 'TN&Platex', 'Tomasi Logística',
+    'Toller Hermanos', 'Morresi Mfruit', 'Placas Rivadavia', 'Citromax', 'PHM SRL', 'MagniFresh', 'Nexus'
+  ]
+
+  const diferencial = [
+    {
+      icon: <Thermometer className="w-5 h-5" />,
+      title: 'Flota 100% térmica',
+      desc: '+55 unidades con equipos de frío Carrier de nueva generación. Temperatura controlada garantizada en cada viaje.',
+    },
+    {
+      icon: <Globe className="w-5 h-5" />,
+      title: 'Cobertura amplia',
+      desc: 'Argentina, Brasil, Uruguay, Chile y Paraguay. Foco especial en centro y norte del país con cargas diarias.',
+    },
+    {
+      icon: <Shield className="w-5 h-5" />,
+      title: 'Documentación al día',
+      desc: 'Todas las unidades con mantenimiento constante y documentación nacional e internacional actualizada.',
+    },
+    {
+      icon: <Clock className="w-5 h-5" />,
+      title: 'Cargas diarias',
+      desc: 'Modalidad punto a punto o reparticiones. Servicio continuo con alta disponibilidad de unidades.',
+    },
+    {
+      icon: <Users className="w-5 h-5" />,
+      title: 'Empresa familiar',
+      desc: 'Creemos en la palabra y las relaciones a largo plazo. Atención personalizada desde el primer contacto.',
+    },
+    {
+      icon: <Star className="w-5 h-5" />,
+      title: '+18 años de trayectoria',
+      desc: 'Seriedad, honestidad y responsabilidad desde el primer día. Más de 40 clientes activos en todo el país.',
+    },
   ]
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Navigation */}
-      <nav className="bg-black shadow-lg sticky top-0 z-50">
+    <div className="min-h-screen bg-[#0d0d0d]">
+
+      {/* NAV */}
+      <nav className="bg-black/92 backdrop-blur-md shadow-lg sticky top-0 z-50 border-b border-yellow-400/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
+          <div className="flex justify-between items-center h-[68px]">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <img 
-                  src="/images/logo.png" 
-                  alt="El Casereño Logo" 
-                  className="h-10 w-auto scale-[2.05]"
-                />
-              </div>
+              <img src="/images/logo.png" alt="El Casereño Logo" className="h-9 w-auto scale-[2.05]" />
             </div>
-            
+            <div className="hidden md:flex items-baseline gap-8">
+              {[['#nosotros','Nosotros'],['#diferencial','Servicios'],['#flota','Flota'],['#clientes','Clientes'],['#contacto','Contacto'],['#trabajá','Trabajá con nosotros']].map(([href, label]) => (
+                <a key={href} href={href} className="text-gray-300 hover:text-yellow-400 text-sm font-medium transition-colors duration-200">{label}</a>
+              ))}
+            </div>
             <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-4">
-                <a href="#inicio" className="text-white hover:text-yellow-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">Inicio</a>
-                <a href="#servicios" className="text-white hover:text-yellow-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">Servicios</a>
-                <a href="#nosotros" className="text-white hover:text-yellow-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">Nosotros</a>
-                <a href="#contacto" className="text-white hover:text-yellow-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">Contacto</a>
-              </div>
+              <a href="#contacto" className="bg-yellow-400 text-black text-sm font-medium px-5 py-2 rounded-md hover:bg-yellow-300 transition-colors duration-200">Contactanos</a>
             </div>
-            
             <div className="md:hidden">
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-white hover:text-yellow-400 focus:outline-none"
-              >
+              <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-white hover:text-yellow-400 focus:outline-none">
                 {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
             </div>
           </div>
         </div>
-
-        {/* Mobile menu */}
         {isMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-black border-t border-gray-800">
-              <a href="#inicio" className="text-white hover:text-yellow-400 block px-3 py-2 rounded-md text-base font-medium">Inicio</a>
-              <a href="#servicios" className="text-white hover:text-yellow-400 block px-3 py-2 rounded-md text-base font-medium">Servicios</a>
-              <a href="#nosotros" className="text-white hover:text-yellow-400 block px-3 py-2 rounded-md text-base font-medium">Nosotros</a>
-              <a href="#contacto" className="text-white hover:text-yellow-400 block px-3 py-2 rounded-md text-base font-medium">Contacto</a>
-              <button className="bg-yellow-400 text-black px-4 py-2 rounded-lg font-semibold hover:bg-yellow-300 transition-colors w-full mt-2">
-                Cotizar ahora
-              </button>
-            </div>
+          <div className="md:hidden px-2 pt-2 pb-3 space-y-1 bg-black border-t border-gray-800">
+            {[['#nosotros','Nosotros'],['#diferencial','Servicios'],['#flota','Flota'],['#clientes','Clientes'],['#contacto','Contacto'],['#trabajá','Trabajá con nosotros']].map(([href, label]) => (
+              <a key={href} href={href} onClick={() => setIsMenuOpen(false)} className="text-white hover:text-yellow-400 block px-3 py-2 rounded-md text-base font-medium">{label}</a>
+            ))}
           </div>
         )}
       </nav>
 
-      {/* Hero Section */}
-      <section id="inicio" className="relative h-screen text-white">
+      {/* HERO */}
+      <section id="inicio" className="relative min-h-screen text-white flex flex-col">
         <div className="absolute inset-0">
-          <img 
-            src="/images/Portada.png" 
-            alt="Camión de carga El Casereño" 
-            className="w-full h-full object-cover"
-          />
+          <img src="/images/casereno-bandera.jpg.jpeg" alt="Camión de carga El Casereño" className="w-full h-full object-cover object-center" style={{ objectPosition: '60% center' }} />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/70 to-black/90"></div>
-        <div className="relative h-full flex items-center justify-center">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6">
-              Transporte de Cargas<br />
-              <span className="text-yellow-400">El Casereño</span>
-            </h1>
-            <p className="text-xl md:text-2xl lg:text-3xl mb-12 max-w-4xl mx-auto font-light">
-              Conectamos tu negocio con destino seguro y puntual. Más de 15 años de experiencia en transporte nacional de cargas.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            
-              <button className="border-2 border-yellow-400 text-yellow-400 px-10 py-4 rounded-lg font-bold text-lg hover:bg-yellow-400 hover:text-black transition-all transform hover:scale-105">
-               <a href="#servicios"> Ver Servicios</a>
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
+        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40"></div>
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-yellow-400"></div>
 
-      {/* Services Section */}
-      <section id="servicios" className="py-20 bg-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Nuestros Servicios
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Soluciones integrales de transporte adaptadas a las necesidades de tu empresa
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {services.map((service, index) => (
-              <div key={index} className="service-card text-center">
-                <div className="relative h-48 mb-4 overflow-hidden rounded-lg">
-                  <img 
-                    src={service.image} 
-                    alt={service.title}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-yellow-400 bg-opacity-20 flex items-center justify-center">
-                  </div>
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                  {service.title}
-                </h3>
-                <p className="text-gray-600">
-                  {service.description}
-                </p>
+        <div className="relative flex-1 flex items-center">
+          <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 w-full py-24">
+            <div className="max-w-2xl">
+              <div className="inline-flex items-center gap-2 bg-yellow-400/12 border border-yellow-400/30 rounded-full px-4 py-1.5 mb-8">
+                <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse"></div>
+                <span className="text-yellow-400 text-xs font-medium tracking-wide">Monte Caseros, Corrientes · Argentina</span>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* About Us Section */}
-      <section id="nosotros" className="py-20 bg-yellow-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                Sobre El Casereño
-              </h2>
-              <p className="text-lg text-gray-600 mb-6">
-                Nacimos en 2007 en Monte Caseros, Corrientes, como una empresa familiar con sólidas raíces en la industria supermercadista. Desde nuestros inicios, nos hemos consolidado en el sector bajo tres pilares fundamentales: seriedad, honestidad y responsabilidad.
-                Hoy contamos con una infraestructura robusta de más de 55 unidades equipadas con tecnología de frío Carrier de nueva generación, lo que nos permite garantizar la máxima eficiencia, seguridad y calidad en cada uno de nuestros servicios
- 
+              <h1 className="text-5xl md:text-7xl lg:text-8xl font-black leading-none tracking-tight mb-6 uppercase">
+                Transporte<br />
+                <span className="text-yellow-400">El Casereño</span>
+              </h1>
+              <p className="text-gray-300 text-base md:text-lg max-w-lg mb-10 leading-relaxed">
+                Conectando destinos con confianza y responsabilidad.<br />
+                Transporte Nacional e Internacional.
               </p>
-              <p className="text-lg text-gray-600 mb-8">
-                Nuestra experiencia nos permite ofrecer soluciones logísticas integrales, conectando los principales centros productivos del país con destino garantizado.
-              </p>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {features.map((feature, index) => (
-                  <div key={index} className="flex items-center">
-                    <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    <span className="text-gray-700">{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="relative">
-              <img 
-                src="/images/casereno6.png" 
-                alt="Equipo El Casereño" 
-                className="rounded-lg shadow-xl w-full h-96 object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-primary-600 to-transparent opacity-80 rounded-lg"></div>
-              <div className="absolute bottom-6 left-6 right-6 text-white">
-                <h3 className="text-2xl font-bold mb-2">¿Por qué elegirnos?</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <ChevronRight className="w-5 h-5 mr-2 flex-shrink-0 text-yellow-400" />
-                    <span className="text-sm">Experiencia Comprobada</span>
-                  </div>
-                  <div className="flex items-center">
-                    <ChevronRight className="w-5 h-5 mr-2 flex-shrink-0 text-yellow-400" />
-                    <span className="text-sm">Flota Moderna</span>
-                  </div>
-                  <div className="flex items-center">
-                    <ChevronRight className="w-5 h-5 mr-2 flex-shrink-0 text-yellow-400" />
-                    <span className="text-sm">Atención Personalizada</span>
-                  </div>
-                </div>
+              <div className="flex flex-row gap-3">
+                <a href="#contacto">
+                  <button className="bg-yellow-400 text-black px-8 py-3.5 rounded-lg font-bold text-base hover:bg-yellow-300 transition-all duration-200 hover:scale-105">
+                    Contactanos
+                  </button>
+                </a>
+                <a href="#nosotros">
+                  <button className="border border-white/25 text-white px-8 py-3.5 rounded-lg font-bold text-base hover:border-yellow-400 hover:text-yellow-400 transition-all duration-200">
+                    Conocé la empresa
+                  </button>
+                </a>
               </div>
             </div>
           </div>
         </div>
-      </section>
 
-      {/* History Section */}
-      <section className="py-20 bg-yellow-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 text-right">
-                Un poco de<br />
-                <span className="text-yellow-500">nuestra historia</span>
-              </h2>
-              <div className="w-20 h-1 bg-yellow-400 mb-8 ml-auto"></div>
-              
-              <div className="space-y-6 text-gray-700 leading-relaxed">
-                <p className="text-lg">
-                  Transporte El Casereño S.A. es una empresa relativamente joven -con 18 años de vida formal- pero con raíces que se remontan aún más atrás, a la pasión, el empuje y la visión de un hombre decidido a transformar la logística de frutas finas en nuestro país.
-                </p>
-                
-                <p className="text-lg">
-                  Nuestro fundador, el señor <strong>José Luis Gorbeña</strong>, oriundo de Monte Caseros, Corrientes, descubrió que en Concordia se cultivaban arándanos de la más alta calidad. Es una fruta delicada, que exigía un transporte extremadamente cuidadoso y veloz hasta el Aeropuerto Internacional de Ezeiza.
-                </p>
-                
-                <p className="text-lg">
-                  Con apenas tres camiones de pequeño porte, se presentó ante la firma <strong>BLUEBERRIES</strong> en la Ruta Nacional Nº 14. Allí, con coraje y profesionalismo, logró ganarse la confianza de sus directivos.
-                </p>
-                
-                <p className="text-lg">
-                  El crecimiento fue exponencial. A medida que la demanda aumentaba, asumimos el desafío de contratar fleteros de diversas provincias, decididos a no renunciar a nuestro compromiso con el cliente.
-                </p>
-                
-                <p className="text-lg">
-                  En <strong>2007</strong> nació formalmente <strong>Transporte El Casereño S.A.</strong> con el apoyo incondicional de su hijo José Luis y el esfuerzo diario de conductores y equipo administrativo.
-                </p>
-              </div>
-            </div>
-            
-            <div className="relative">
-              <div className="bg-white rounded-lg shadow-xl p-8">
-                <div className="grid grid-cols-1 gap-6">
-                  <div className="flex items-center space-x-4 p-4 bg-yellow-50 rounded-lg">
-                    <div className="text-5xl font-bold text-yellow-500">2007</div>
-                    <div className="text-gray-700">
-                      <div className="font-semibold">Año de fundación</div>
-                      <div className="text-sm">Nacimiento formal de la empresa</div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-4 p-4 bg-yellow-50 rounded-lg">
-                    <div className="text-5xl font-bold text-yellow-500">18+</div>
-                    <div className="text-gray-700">
-                      <div className="font-semibold">Años de experiencia</div>
-                      <div className="text-sm">Trayectoria consolidada</div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-4 p-4 bg-yellow-50 rounded-lg">
-                    <div className="text-5xl font-bold text-yellow-500">55+</div>
-                    <div className="text-gray-700">
-                      <div className="font-semibold">Unidades en flota</div>
-                      <div className="text-sm">Tecnología Carrier de última generación</div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-4 p-4 bg-yellow-50 rounded-lg">
-                    <div className="text-5xl font-bold text-yellow-500">3</div>
-                    <div className="text-gray-700">
-                      <div className="font-semibold">Camiones iniciales</div>
-                      <div className="text-sm">El inicio de nuestra historia</div>
-                    </div>
-                  </div>
+        {/* Stats */}
+        <div ref={statsRef} className="relative border-t border-white/10 bg-black/50 backdrop-blur-sm">
+          <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-5">
+            <div className="flex flex-wrap justify-center gap-y-4 divide-x divide-white/10">
+              {[
+                { value: counters.units, prefix: '+', label: 'Unidades activas' },
+                { value: counters.years, prefix: '',  label: 'Años de experiencia' },
+                { value: counters.countries, prefix: '', label: 'Países de cobertura' },
+                { value: counters.offices, prefix: '', label: 'Sedes operativas' },
+              ].map((stat, i) => (
+                <div key={i} className="px-8 first:pl-8">
+                  <span className="text-yellow-400 text-3xl font-black block leading-none tabular-nums">{stat.prefix}{stat.value}</span>
+                  <span className="text-gray-400 text-xs mt-1 block">{stat.label}</span>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Coverage Section */}
-      <section className="py-20 bg-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Zonas de Cobertura
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Conectamos todo el territorio argentino con nuestro servicio de transporte nacional
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="relative h-96 rounded-lg overflow-hidden shadow-xl">
-              <img 
-                src="/images/casereno1.png" 
-                alt="Mapa de cobertura Argentina" 
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-transparent opacity-70"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-white text-center">
-                  <h3 className="text-3xl font-bold mb-4">Cobertura Nacional</h3>
-                  <p className="text-xl">Conectando todo el país</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="text-center">
-                <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MapPin className="w-10 h-10 text-primary-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">Norte Argentino</h3>
-                <p className="text-gray-600">
-                  Salta, Jujuy, Tucumán, Santiago del Estero, Catamarca, La Rioja
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MapPin className="w-10 h-10 text-primary-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">Centro y Cuyo</h3>
-                <p className="text-gray-600">
-                  Córdoba, Santa Fe, Mendoza, San Juan, San Luis, Buenos Aires
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MapPin className="w-10 h-10 text-primary-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">Patagonia</h3>
-                <p className="text-gray-600">
-                  Neuquén, Río Negro, Chubut, Santa Cruz, Tierra del Fuego
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Clients Carousel Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Clientes que confían en nosotros
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Empresas líderes que eligen nuestros servicios de transporte
-            </p>
-          </div>
-
-          <div className="relative max-w-4xl mx-auto">
-            <div className="relative overflow-hidden rounded-lg shadow-xl bg-gray-50" style={{ minHeight: '600px' }}>
-              <div 
-                className="flex transition-transform duration-500 ease-in-out"
-                style={{ transform: `translateX(-${currentClientIndex * 100}%)` }}
-              >
-                {Array.from({ length: totalClients }, (_, index) => (
-                  <div key={index} className="w-full flex-shrink-0 flex items-center justify-center p-16" style={{ minHeight: '600px' }}>
-                    <img 
-                      src={`/images/clientes/${String(index + 1).padStart(2, '0')}.png`}
-                      alt={`Cliente ${index + 1}`}
-                      className="max-h-[500px] w-auto object-contain"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Navigation Buttons */}
-            <button 
-              onClick={prevClient}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-yellow-400 hover:bg-yellow-300 text-black p-3 rounded-full shadow-lg transition-colors duration-300 z-10"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <button 
-              onClick={nextClient}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-yellow-400 hover:bg-yellow-300 text-black p-3 rounded-full shadow-lg transition-colors duration-300 z-10"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-            
-            {/* Navigation Dots */}
-            <div className="flex justify-center mt-6 space-x-2">
-              {Array.from({ length: totalClients }, (_, index) => (
-                <button
-                  key={index}
-                  className={`w-2 h-2 rounded-full transition-colors duration-300 ${index === currentClientIndex ? 'bg-yellow-400' : 'bg-gray-300 hover:bg-yellow-400'}`}
-                  onClick={() => goToClient(index)}
-                />
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section id="contacto" className="py-20 bg-yellow-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Contacto
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              ¿Listo para enviar tu carga? Comunícate con nosotros y obtén una cotización inmediata
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <div>
-              <form className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Nombre
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                      placeholder="Tu nombre"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Empresa
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                      placeholder="Tu empresa"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    placeholder="tu@email.com"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Teléfono
-                  </label>
-                  <input
-                    type="tel"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    placeholder="03775 15-63-8819"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Mensaje
-                  </label>
-                  <textarea
-                    rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    placeholder="Describe tu necesidad de transporte..."
-                  />
-                </div>
-                
-                <button type="submit" className="bg-yellow-400 text-black px-6 py-3 rounded-lg font-semibold hover:bg-yellow-300 transition-colors w-full">
-                  Enviar Mensaje
-                </button>
-              </form>
+      {/* FRANJA AMARILLA */}
+      <div className="bg-yellow-400 py-4 px-6">
+        <div className="max-w-7xl mx-auto flex flex-wrap justify-center gap-x-10 gap-y-2">
+          {[
+            'Transporte temperatura controlada',
+            'Cobertura nacional e internacional',
+            'Cargas diarias punto a punto',
+            'Equipos Carrier nueva generación',
+          ].map(item => (
+            <div key={item} className="flex items-center gap-2 text-sm font-medium text-black">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              {item}
             </div>
-            
-            <div className="space-y-8">
-              <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">Información de Contacto</h3>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center">
-                    <Phone className="w-6 h-6 text-yellow-400 mr-4" />
-                    <div>
-                      <p className="font-semibold text-gray-900">Teléfono</p>
-                      <p className="text-gray-600">03775 15-63-8819</p>
-                      <p className="text-gray-600">03775 15-63-8819 (WhatsApp)</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center">
-                    <Mail className="w-6 h-6 text-yellow-400 mr-4" />
-                    <div>
-                      <p className="font-semibold text-gray-900">Email</p>
-                      <p className="text-gray-600">josegorbena@grupo-jlg.com</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center">
-                    <MapPin className="w-6 h-6 text-yellow-400 mr-4" />
-                    <div>
-                      <p className="font-semibold text-gray-900">Dirección</p>
-                      <p className="text-gray-600">av. Libertador 1280, Monte Caseros, Corrientes 3220</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center">
-                    <Facebook className="w-6 h-6 text-yellow-400 mr-4" />
-                    <div>
-                      <p className="font-semibold text-gray-900">Facebook</p>
-                      <a 
-                        href="https://www.facebook.com/p/Transporte-El-Casere%C3%B1o-SA-100063768003262/" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-gray-600 hover:text-yellow-400 transition-colors"
-                      >
-                        Transporte El Casereño SA
-                      </a>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center">
-                    <Instagram className="w-6 h-6 text-yellow-400 mr-4" />
-                    <div>
-                      <p className="font-semibold text-gray-900">Instagram</p>
-                      <a 
-                        href="https://www.instagram.com/transporte.casereno.sa/?hl=es" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-gray-600 hover:text-yellow-400 transition-colors"
-                      >
-                        @transporte.casereno.sa
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-black rounded-lg p-6 text-white">
-                <h4 className="text-xl font-bold mb-3 text-yellow-400">Horario de Atención</h4>
-                <p className="text-gray-300">
-                  Lunes a Viernes: 8:00 - 18:00 hs<br />
-                  Sábados: 8:00 - 12:00 hs<br />
-                  Emergencias: 24/7
-                </p>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
-      </section>
+      </div>
 
-      {/* Gallery Section */}
-      <section className="py-20 bg-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Nuestra Flota en Acción
+      {/* NOSOTROS */}
+      <section id="nosotros" className="py-24 bg-[#161616]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+
+          {/* Header */}
+          <div className="mb-12">
+            <p className="text-xs font-semibold uppercase tracking-[2px] text-yellow-400 mb-2">Quiénes somos</p>
+            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight">
+              Una historia de familia<br />y camino
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Conoce nuestros camiones y el equipo que hace posible tus envíos
-            </p>
+            <div className="flex flex-wrap gap-3 mt-6">
+              {['Seriedad', 'Honestidad', 'Responsabilidad'].map(valor => (
+                <span key={valor} className="border border-yellow-400/40 text-yellow-400 text-xs font-medium px-4 py-1.5 rounded-full tracking-widest hover:bg-yellow-400/10 hover:border-yellow-400 transition-all duration-300 cursor-default">
+                  {valor}
+                </span>
+              ))}
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="relative group overflow-hidden rounded-lg shadow-lg">
-              <img 
-                src="/images/casereno2.png" 
-                alt="Camión de carga pesada" 
-                className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-70 transition-opacity duration-300"></div>
-              <div className="absolute bottom-4 left-4 right-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <h3 className="text-lg font-semibold">Camiones de Carga Pesada</h3>
-                <p className="text-sm">Capacidad para grandes volúmenes</p>
-              </div>
-            </div>
-            
-            <div className="relative group overflow-hidden rounded-lg shadow-lg">
-              <img 
-                src="/images/casereno3.png" 
-                alt="Transporte de mercadería" 
-                className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-70 transition-opacity duration-300"></div>
-              <div className="absolute bottom-4 left-4 right-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <h3 className="text-lg font-semibold">Transporte Seguro</h3>
-                <p className="text-sm">Tu mercadería protegida</p>
-              </div>
-            </div>
-            
-            <div className="relative group overflow-hidden rounded-lg shadow-lg">
-              <img 
-                src="/images/casereno4.png" 
-                alt="Logística y distribución" 
-                className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-70 transition-opacity duration-300"></div>
-              <div className="absolute bottom-4 left-4 right-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <h3 className="text-lg font-semibold">Logística Eficiente</h3>
-                <p className="text-sm">Distribución a todo el país</p>
-              </div>
+          {/* Timeline horizontal */}
+          <div className="mb-14 overflow-x-auto">
+            <div className="relative flex min-w-[680px]">
+              <div className="absolute left-0 right-0 h-px bg-yellow-400/15" style={{ top: '38px' }}></div>
+              <div className="timeline-scanner absolute left-0 right-0 h-px" style={{ top: '38px' }}></div>
+              {timeline.map((item, index) => {
+                const isVisible = visibleItems.has(index)
+                return (
+                  <div key={index} ref={el => { itemRefs.current[index] = el }} className="flex-1 flex flex-col items-center px-1.5">
+                    <div style={{ opacity: isVisible ? 1 : 0, transform: isVisible ? 'translateY(0)' : 'translateY(-10px)', transition: 'opacity 0.5s ease, transform 0.5s ease', transitionDelay: `${index * 70}ms` }} className="h-7 flex items-center mb-1">
+                      <span className="text-yellow-400 font-black text-xs sm:text-sm">{item.year}</span>
+                    </div>
+                    <div className="relative z-10 mb-3 w-3 h-3">
+                      {isVisible && <div className="absolute inset-0 rounded-full bg-yellow-400/40 timeline-dot-ping" style={{ animationDelay: `${index * 300}ms` }} />}
+                      <div style={{ transition: 'background-color 0.4s ease, transform 0.4s ease, box-shadow 0.4s ease', transitionDelay: `${index * 70}ms`, transform: isVisible ? 'scale(1)' : 'scale(0.2)', boxShadow: isVisible ? '0 0 12px rgba(250,204,21,0.7)' : 'none' }} className={`w-3 h-3 rounded-full border-2 border-yellow-400 ${isVisible ? 'bg-yellow-400' : 'bg-[#161616]'}`} />
+                    </div>
+                    <div style={{ opacity: isVisible ? 1 : 0, transform: isVisible ? 'translateY(0)' : 'translateY(12px)', transition: 'opacity 0.6s ease, transform 0.6s ease', transitionDelay: `${index * 70 + 100}ms` }} className="bg-[#1e1e1e] border border-gray-800 rounded-xl p-2.5 w-full hover:border-yellow-400/60 hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(250,204,21,0.12)] transition-all duration-300 cursor-default">
+                      <h3 className="text-white font-bold text-xs leading-tight">{item.title}</h3>
+                      <p className="text-gray-500 text-xs mt-1 leading-relaxed line-clamp-3">{item.desc}</p>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
-          
-          <div className="text-center mt-12">
-            <button className="bg-yellow-400 text-black px-6 py-3 rounded-lg font-semibold hover:bg-yellow-300 transition-colors">
-              Ver Más Fotos
-            </button>
-          </div>
-        </div>
-      </section>
 
-      {/* Footer */}
-      <footer className="bg-black text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Contenido + imagen */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
-              <h3 className="text-2xl font-bold text-yellow-400 mb-4">El Casereño</h3>
-              <p className="text-gray-400">
-                Tu socio confiable en transporte de cargas a nivel nacional.
+              <p className="text-gray-400 text-base leading-relaxed mb-5">
+                Fundada en 2007 por José Luis Gorbeña en Monte Caseros, Corrientes, El Casereño nació de una visión simple: que la fruta fina del litoral merecía llegar fresca a destino. Empezamos transportando arándanos con 3 camiones. Hoy somos más de 55 unidades y seguimos siendo la misma familia.
               </p>
-              
+              <p className="text-gray-400 text-base leading-relaxed mb-8">
+                Operamos con cargas diarias en modalidad punto a punto o reparticiones, cubriendo todo el territorio argentino y países limítrofes.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {features.map((feature, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    <CheckCircle className="w-4 h-4 text-yellow-400 flex-shrink-0" />
+                    <span className="text-gray-300 text-sm">{feature}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Servicios</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>Transporte de Cargas Generales</li>
-                <li>Carga Refrigerada</li>
-                <li>Servicio Express</li>
-                <li>Logística Integral</li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Enlaces</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#inicio" className="hover:text-white transition-colors">Inicio</a></li>
-                <li><a href="#servicios" className="hover:text-white transition-colors">Servicios</a></li>
-                <li><a href="#nosotros" className="hover:text-white transition-colors">Nosotros</a></li>
-                <li><a href="#contacto" className="hover:text-white transition-colors">Contacto</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Contacto</h4>
-              <div className="space-y-2 text-gray-400">
-                <p>03775 15-63-8819 </p>
-                <p>josegorbena@grupo-jlg.com</p>
-                <p>av. Libertador 1280, Monte Caseros, Corrientes 3220</p>
+            <div className="relative">
+              <div className="absolute -inset-3 bg-yellow-400 rounded-3xl opacity-10 blur-sm"></div>
+              <img src="/images/casereno-flota.jpg.jpeg" alt="Flota El Casereño" className="relative rounded-2xl w-full h-[440px] object-cover shadow-2xl" />
+              <div className="absolute -bottom-5 -right-5 bg-yellow-400 text-black rounded-2xl p-5 shadow-2xl">
+                <span className="text-4xl font-black block leading-none">18+</span>
+                <span className="text-xs font-bold uppercase tracking-wider mt-1 block">años de experiencia</span>
               </div>
             </div>
           </div>
-          
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2026 Código20 : : : Todos los derechos reservados.</p> 
-            <p className="text-gray-400"> Administrar </p>
+        </div>
+      </section>
+
+      {/* POR QUÉ ELEGIRNOS */}
+      <section id="diferencial" className="py-24 bg-[#0d0d0d]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-12">
+            <p className="text-xs font-semibold uppercase tracking-[2px] text-yellow-400 mb-2">Por qué elegirnos</p>
+            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight mb-3">Nuestro diferencial competitivo</h2>
+            <p className="text-gray-500 text-base max-w-xl">Más de 18 años de experiencia nacional e internacional, comprometidos en brindar un servicio de carga en tiempo y calidad.</p>
           </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {diferencial.map((card, i) => (
+              <div key={i} className="bg-[#161616] border border-white/6 rounded-xl p-6 hover:border-yellow-400/30 hover:-translate-y-1 transition-all duration-200 cursor-default">
+                <div className="w-11 h-11 bg-yellow-400/10 rounded-lg flex items-center justify-center mb-4 text-yellow-400">
+                  {card.icon}
+                </div>
+                <h3 className="text-white font-semibold text-sm mb-2">{card.title}</h3>
+                <p className="text-gray-500 text-xs leading-relaxed">{card.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* NUESTRA FLOTA */}
+      <section id="flota" className="py-24 bg-[#161616]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-12">
+            <p className="text-xs font-semibold uppercase tracking-[2px] text-yellow-400 mb-2">Nuestra flota</p>
+            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight mb-3">Capacidad para cada necesidad</h2>
+            <p className="text-gray-500 text-base max-w-xl">Todas las unidades equipadas con frío Carrier, en constante mantenimiento y disponibles para carga inmediata.</p>
+          </div>
+
+          {/* Números */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {[
+              { num: '+55', label: 'Unidades totales' },
+              { num: '95%', label: 'Unidades térmicas' },
+              { num: '3',   label: 'Sedes operativas' },
+              { num: '5',   label: 'Países de cobertura' },
+            ].map((n, i) => (
+              <div key={i} className="bg-[#1e1e1e] border border-white/6 rounded-xl p-5 text-center">
+                <span className="text-yellow-400 text-4xl font-black block leading-none">{n.num}</span>
+                <span className="text-gray-500 text-xs mt-2 block">{n.label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Tipos de unidades */}
+          <div className="bg-[#1e1e1e] border border-white/6 rounded-xl p-6 mb-6">
+            <p className="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-4">Tipos de unidades</p>
+            <div className="flex flex-wrap gap-2">
+              {['Tractores','Semirremolques','Balancines','Chasis','Camiones Saider','Camiones abiertos'].map(t => (
+                <span key={t} className="bg-yellow-400/8 border border-yellow-400/20 text-gray-300 text-xs px-3 py-1.5 rounded-md">{t}</span>
+              ))}
+            </div>
+          </div>
+
+          {/* Sedes */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[
+              { name: 'Sede Central', loc: 'Monte Caseros, Corrientes' },
+              { name: 'Sucursal Riachuelo', loc: 'Corrientes' },
+              { name: 'Sucursal Ezeiza', loc: 'Buenos Aires' },
+            ].map((s, i) => (
+              <div key={i} className="bg-yellow-400/6 border border-yellow-400/15 rounded-lg px-4 py-3">
+                <p className="text-yellow-400 text-xs font-semibold mb-0.5">{s.name}</p>
+                <p className="text-gray-500 text-xs">{s.loc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* NUESTRAS SEDES — MAPA */}
+      <section className="py-20 bg-black">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">Nuestras Sedes</h2>
+            <p className="text-yellow-400 font-medium text-lg">Alianzas, Cobertura nacional e internacional</p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+            <div className="lg:col-span-2 bg-[#0d0d0d] rounded-2xl border border-gray-800 overflow-hidden min-h-[520px]">
+              <MapArgentina />
+            </div>
+            <div className="space-y-4">
+              <div className="bg-[#0d0d0d] border border-yellow-400/30 rounded-2xl p-5">
+                <div className="flex items-start gap-3">
+                  <div className="w-3 h-3 rounded-full bg-yellow-400 mt-1.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-yellow-400 font-bold text-xs uppercase tracking-widest mb-1">Sede Central</p>
+                    <p className="text-white font-semibold">Monte Caseros, Corrientes</p>
+                    <p className="text-gray-400 text-sm mt-1">Casa central de operaciones desde 2007</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-[#0d0d0d] border border-gray-700 rounded-2xl p-5">
+                <div className="flex items-start gap-3">
+                  <div className="w-3 h-3 rounded-full bg-yellow-400/80 mt-1.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-yellow-400/80 font-bold text-xs uppercase tracking-widest mb-1">Sucursal</p>
+                    <p className="text-white font-semibold">Riachuelo, Corrientes</p>
+                    <p className="text-gray-400 text-sm mt-1">Centro de distribución regional</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-[#0d0d0d] border border-gray-700 rounded-2xl p-5">
+                <div className="flex items-start gap-3">
+                  <div className="w-3 h-3 rounded-full bg-yellow-400/80 mt-1.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-yellow-400/80 font-bold text-xs uppercase tracking-widest mb-1">Sucursal</p>
+                    <p className="text-white font-semibold">Ezeiza, Buenos Aires</p>
+                    <p className="text-gray-400 text-sm mt-1">Operaciones logísticas en el Gran Buenos Aires</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-[#0d0d0d] border border-yellow-400/20 rounded-2xl p-5">
+                <p className="text-yellow-400 font-bold text-xs uppercase tracking-widest mb-3">Cobertura Internacional</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { name: 'Brasil',    code: 'BR', svg: 'br' },
+                    { name: 'Uruguay',   code: 'UY', svg: 'uy' },
+                    { name: 'Chile',     code: 'CL', svg: 'cl' },
+                    { name: 'Paraguay',  code: 'PY', svg: 'py' },
+                  ].map(p => (
+                    <div key={p.name} className="flex flex-col items-center gap-1.5 bg-black/40 border border-gray-800 rounded-xl px-3 py-3 hover:border-yellow-400/40 transition-colors duration-200">
+                      <img
+                        src={`https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.2.3/flags/4x3/${p.svg}.svg`}
+                        alt={p.name}
+                        width={64}
+                        height={43}
+                        className="rounded-[4px] object-cover"
+                      />
+                      <p className="text-white font-semibold text-sm">{p.name}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CLIENTES */}
+      <section id="clientes" className="py-16 bg-[#0d0d0d] overflow-hidden">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
+          <p className="text-xs font-semibold uppercase tracking-[2px] text-yellow-400 mb-2">Clientes</p>
+          <h2 className="text-3xl md:text-4xl font-black text-white mb-3">Empresas que confían en nosotros</h2>
+          <p className="text-gray-500 text-base">Trabajamos con empresas líderes en alimentos, frutas, logística y consumo masivo en toda Argentina.</p>
+        </div>
+        <div className="relative">
+          <div className="flex overflow-hidden">
+            <div className="animate-marquee flex gap-8 whitespace-nowrap">
+              {[...clients, ...clients].map((client, index) => (
+                <div key={index} className="inline-flex items-center justify-center px-6 py-3 bg-[#161616] border border-gray-700 rounded-lg flex-shrink-0 hover:border-yellow-400 transition-colors duration-300">
+                  <span className="text-gray-300 font-medium text-sm">{client}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="absolute left-0 top-0 h-full w-24 bg-gradient-to-r from-[#0d0d0d] to-transparent z-10 pointer-events-none"></div>
+          <div className="absolute right-0 top-0 h-full w-24 bg-gradient-to-l from-[#0d0d0d] to-transparent z-10 pointer-events-none"></div>
+        </div>
+      </section>
+
+      {/* CONTACTO */}
+      <section id="contacto" className="py-24 bg-[#161616]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+
+            {/* Izquierda */}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[2px] text-yellow-400 mb-2">Contacto</p>
+              <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight mb-4">Hablemos de<br />tu carga</h2>
+              <p className="text-gray-500 text-base leading-relaxed mb-8">Somos una empresa familiar que cree en el trato directo. Contactanos y te respondemos a la brevedad.</p>
+              <div className="flex gap-10 pt-6 border-t border-white/8">
+                <div>
+                  <span className="text-yellow-400 text-4xl font-black block leading-none">+55</span>
+                  <span className="text-gray-500 text-xs mt-1 block">Unidades disponibles</span>
+                </div>
+                <div>
+                  <span className="text-yellow-400 text-4xl font-black block leading-none">18</span>
+                  <span className="text-gray-500 text-xs mt-1 block">Años de experiencia</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Card contacto */}
+            <div className="bg-[#1e1e1e] border border-white/7 rounded-2xl p-8">
+              <div className="w-13 h-13 w-[52px] h-[52px] rounded-full bg-yellow-400/15 border-2 border-yellow-400/30 flex items-center justify-center mb-4">
+                <span className="text-yellow-400 font-black text-lg tracking-wide">JG</span>
+              </div>
+              <h3 className="text-white font-semibold text-lg mb-0.5">José Luis Gorbeña</h3>
+              <p className="text-gray-500 text-sm mb-6">Gerente Comercial</p>
+              <div className="h-px bg-white/7 mb-6"></div>
+
+              <div className="space-y-4 mb-6">
+                <div className="flex items-center gap-3 text-gray-300 text-sm">
+                  <svg className="text-yellow-400 flex-shrink-0" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                  <a href="mailto:josegorbena@grupo-jlg.com" className="hover:text-yellow-400 transition-colors">josegorbena@grupo-jlg.com</a>
+                </div>
+                <div className="flex items-center gap-3 text-gray-300 text-sm">
+                  <svg className="text-yellow-400 flex-shrink-0" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.82a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.01z"/></svg>
+                  <a href="tel:+5403775638819" className="hover:text-yellow-400 transition-colors">03775 – 638819</a>
+                </div>
+                <div className="flex items-center gap-3 text-gray-300 text-sm">
+                  <svg className="text-yellow-400 flex-shrink-0" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  Monte Caseros, Corrientes · Argentina
+                </div>
+              </div>
+
+              <a href="https://wa.me/5403775638819" target="_blank" rel="noopener noreferrer" className="block w-full bg-yellow-400 text-black text-sm font-semibold text-center py-3.5 rounded-lg hover:bg-yellow-300 transition-colors duration-200">
+                Escribinos por WhatsApp
+              </a>
+
+              <div className="flex items-center justify-center gap-5 pt-4 border-t border-white/7 mt-2">
+                <a href="https://www.facebook.com/share/1H3te6ykUX/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-gray-500 hover:text-yellow-400 transition-colors duration-200 text-sm">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                  Facebook
+                </a>
+                <a href="https://www.instagram.com/transporte.casereno.sa?utm_source=qr&igsh=MXNtZGlkNjZjZHdsZg==" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-gray-500 hover:text-yellow-400 transition-colors duration-200 text-sm">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                  Instagram
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* TRABAJÁ CON NOSOTROS */}
+      <section id="trabajá" className="py-24 bg-[#0d0d0d]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-12">
+            <p className="text-xs font-semibold uppercase tracking-[2px] text-yellow-400 mb-2">Sumate al equipo</p>
+            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight mb-3">Trabajá con nosotros</h2>
+            <p className="text-gray-500 text-base max-w-xl">Somos una empresa familiar en constante crecimiento. Si querés ser parte de un equipo comprometido y profesional, nos interesa conocerte.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
+            {[
+              { role: 'Choferes con registro', desc: 'Habilitación categoría E. Experiencia en larga distancia y/o cargas especiales.' },
+              { role: 'Mecánicos de flota', desc: 'Conocimiento en motores a diesel, sistemas de frío Carrier y mantenimiento preventivo.' },
+              { role: 'Administrativos', desc: 'Gestión de documentación, logística y coordinación de viajes nacionales e internacionales.' },
+              { role: 'Despachantes de carga', desc: 'Conocimiento en documentación aduanera para operaciones con Brasil, Uruguay, Chile y Paraguay.' },
+              { role: 'Operadores logísticos', desc: 'Seguimiento de cargas, comunicación con clientes y coordinación con conductores.' },
+              { role: 'Otras posiciones', desc: 'Si no encontrás tu perfil pero querés ser parte del equipo, igualmente escribinos.' },
+            ].map((item, i) => (
+              <div key={i} className="bg-[#161616] border border-white/6 rounded-xl p-5 hover:border-yellow-400/30 transition-all duration-200">
+                <div className="w-2 h-2 rounded-full bg-yellow-400 mb-3" />
+                <h3 className="text-white font-semibold text-sm mb-2">{item.role}</h3>
+                <p className="text-gray-500 text-xs leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-[#161616] border border-yellow-400/20 rounded-2xl p-8 flex flex-col md:flex-row items-center gap-6 justify-between">
+            <div>
+              <h3 className="text-white font-bold text-lg mb-1">¿Querés postularte?</h3>
+              <p className="text-gray-500 text-sm">Mandanos tu CV y una breve presentación al correo o por WhatsApp.</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
+              <a href="mailto:josegorbena@grupo-jlg.com?subject=Postulación laboral" className="flex items-center gap-2 bg-white/6 border border-white/10 text-white text-sm font-medium px-5 py-3 rounded-lg hover:border-yellow-400/40 hover:text-yellow-400 transition-all duration-200">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                Enviar CV por email
+              </a>
+              <a href="https://wa.me/5403775638819?text=Hola,%20me%20interesa%20postularme%20para%20trabajar%20en%20El%20Casereño" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-yellow-400 text-black text-sm font-bold px-5 py-3 rounded-lg hover:bg-yellow-300 transition-all duration-200">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.149-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="bg-[#0d0d0d] border-t border-white/6 py-8 px-8">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-4">
+          <img src="/images/logo.png" alt="El Casereño Logo" className="h-7 w-auto scale-[2.05] md:mr-auto" />
+          <div className="flex items-center gap-4">
+            <a href="https://www.facebook.com/share/1H3te6ykUX/" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-yellow-400 transition-colors duration-200" aria-label="Facebook">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+            </a>
+            <a href="https://www.instagram.com/transporte.casereno.sa?utm_source=qr&igsh=MXNtZGlkNjZjZHdsZg==" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-yellow-400 transition-colors duration-200" aria-label="Instagram">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            </a>
+          </div>
+          <span className="text-gray-600 text-xs text-center md:ml-auto">© 2025 Transporte El Casereño S.A. Todos los derechos reservados · Diseño y desarrollo por Código20</span>
         </div>
       </footer>
 
-      {/* Floating WhatsApp Button */}
-      <a
-        href="https://wa.me/5491112345678?text=Hola%20El%20Casereño,%20necesito%20información%20sobre%20sus%20servicios%20de%20transporte"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition-all duration-300 hover:scale-110 z-50 group"
-      >
-        <svg
-          className="w-6 h-6"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
+      {/* WHATSAPP FLOTANTE */}
+      <a href="https://wa.me/5403775638819" target="_blank" rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition-all duration-300 hover:scale-110 z-50 group">
+        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.149-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
         </svg>
-        <span className="absolute right-full mr-3 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white px-3 py-1 rounded-lg text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-gray-800 text-white px-3 py-1 rounded-lg text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           ¡Habla con nosotros!
         </span>
       </a>
+
     </div>
   )
 }
