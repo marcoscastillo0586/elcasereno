@@ -1,16 +1,27 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Menu, X, CheckCircle, Thermometer, Globe, Shield, Clock, Users, Star } from 'lucide-react'
+import { Menu, X, CheckCircle, Thermometer, Globe, Shield, Clock, Users, Star, Sun, Moon } from 'lucide-react'
 import MapArgentina from './components/MapArgentina'
+import AdminBar from './components/AdminBar'
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [visibleItems, setVisibleItems] = useState<Set<number>>(new Set())
   const itemRefs = useRef<(HTMLDivElement | null)[]>([])
-  const [statsVisible, setStatsVisible] = useState(false)
   const statsRef = useRef<HTMLDivElement>(null)
   const [counters, setCounters] = useState({ units: 0, years: 0, offices: 0, countries: 0 })
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+
+  useEffect(() => {
+    const saved = localStorage.getItem('casereno-theme') as 'dark' | 'light' | null
+    if (saved) setTheme(saved)
+  }, [])
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('casereno-theme', theme)
+  }, [theme])
 
   useEffect(() => {
     const check = () => {
@@ -28,23 +39,7 @@ export default function Home() {
   }, [visibleItems])
 
   useEffect(() => {
-    const check = () => {
-      const el = statsRef.current
-      if (!el) return
-      const rect = el.getBoundingClientRect()
-      if (rect.top < window.innerHeight) {
-        setStatsVisible(true)
-        window.removeEventListener('scroll', check)
-      }
-    }
-    window.addEventListener('scroll', check, { passive: true })
-    check()
-    return () => window.removeEventListener('scroll', check)
-  }, [])
-
-  useEffect(() => {
-    if (!statsVisible) return
-    const targets = { units: 55, years: 18, offices: 3, countries: 4 }
+    const targets = { units: 55, years: 19, offices: 3, countries: 4 }
     let animTimer: ReturnType<typeof setInterval>
     let loopTimer: ReturnType<typeof setInterval>
 
@@ -71,10 +66,10 @@ export default function Home() {
     runAnimation()
     loopTimer = setInterval(runAnimation, 9000)
     return () => { clearInterval(animTimer); clearInterval(loopTimer) }
-  }, [statsVisible])
+  }, [])
 
   const features = [
-    "18 años de experiencia",
+    "19 años de experiencia",
     "Cobertura nacional e internacional",
     "Más de 55 unidades térmicas Carrier",
     "Seguro de carga completo",
@@ -95,14 +90,29 @@ export default function Home() {
     { year: '2025', title: 'Seguimos creciendo', desc: 'Nuevo centro de distribución en Riachuelo y sede en Ezeiza, Buenos Aires' },
   ]
 
-  const clients = [
-    'Soychú', 'CCAM', 'PuroSol', 'Tonadita', 'Surfrigo', 'Dass', 'Fepasa', 'Trégar', 'Don Satur',
-    'GrupoHenn', 'ExpoVerde', 'Granja Tres Arroyos', 'Citric', 'Las Camelias SA', 'Lario', 'Fadel',
-    'Gramm', 'Eca', 'Tasa Logística', 'San Francisco', 'Silvestrin', 'Jauser', 'Grimoldi',
-    'Los Azahares SA', 'Litoral Citrus SA', 'El Paruco', 'Gamorel', 'Arsa', 'Eriochem SA',
-    'Fama', 'Grupo de Narvaez', 'Grupodelplata', 'Jucofer', 'TN&Platex', 'Tomasi Logística',
-    'Toller Hermanos', 'Morresi Mfruit', 'Placas Rivadavia', 'Citromax', 'PHM SRL', 'MagniFresh', 'Nexus'
-  ]
+  const [clientLogos, setClientLogos] = useState([
+    { src: 'puro-sol.png', name: 'PuroSol' },
+    { src: 'tonadita.png', name: 'Tonadita' },
+    { src: 'surfrigo.png', name: 'Surfrigo' },
+    { src: 'dass.png', name: 'Dass' },
+    { src: 'fepasa.png', name: 'Fepasa' },
+    { src: 'tregar.png', name: 'Trégar' },
+    { src: 'don-satur.png', name: 'Don Satur' },
+    { src: 'soychu.png', name: 'Soychú' },
+    { src: 'ccam.png', name: 'CCAM' },
+  ])
+
+  useEffect(() => {
+    const onAddLogo = (event: Event) => {
+      const detail = (event as CustomEvent).detail as { src: string; name?: string }
+      if (!detail?.src) return
+      const src = detail.src
+      const name = detail.name || detail.src.split('/').pop()?.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ') || 'Nuevo cliente'
+      setClientLogos(prev => [...prev, { src: src.startsWith('/') ? src : src, name }])
+    }
+    window.addEventListener('admin:addLogo', onAddLogo as EventListener)
+    return () => window.removeEventListener('admin:addLogo', onAddLogo as EventListener)
+  }, [])
 
   const diferencial = [
     {
@@ -132,10 +142,16 @@ export default function Home() {
     },
     {
       icon: <Star className="w-5 h-5" />,
-      title: '+18 años de trayectoria',
+      title: '+19 años de trayectoria',
       desc: 'Seriedad, honestidad y responsabilidad desde el primer día. Más de 40 clientes activos en todo el país.',
     },
   ]
+
+  const tipos = ['Tractores','Semitermicos','Chasis']
+  const modelosPorTipo: Record<string, string[]> = {
+    Tractores: ['STRALIS','HI-WAY','S-WAY','HI-ROAD'],
+    Chasis: ['TECTOR'],
+  }
 
   return (
     <div className="min-h-screen bg-[#0d0d0d]">
@@ -148,14 +164,20 @@ export default function Home() {
               <img src="/images/logo.png" alt="El Casereño Logo" className="h-9 w-auto scale-[2.05]" />
             </div>
             <div className="hidden md:flex items-baseline gap-8">
-              {[['#nosotros','Nosotros'],['#diferencial','Servicios'],['#flota','Flota'],['#clientes','Clientes'],['#contacto','Contacto'],['#trabajá','Trabajá con nosotros']].map(([href, label]) => (
+              {[['#nosotros','Nosotros'],['#diferencial','Servicios'],['#flota','Flota'],['#sedes','Sedes'],['#clientes','Clientes'],['#trabajá','Trabajá con nosotros']].map(([href, label]) => (
                 <a key={href} href={href} className="text-gray-300 hover:text-yellow-400 text-sm font-medium transition-colors duration-200">{label}</a>
               ))}
             </div>
-            <div className="hidden md:block">
+            <div className="hidden md:flex items-center gap-3">
+              <button onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')} className="text-gray-400 hover:text-yellow-400 transition-colors duration-200 p-1.5 rounded-md" title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}>
+                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
               <a href="#contacto" className="bg-yellow-400 text-black text-sm font-medium px-5 py-2 rounded-md hover:bg-yellow-300 transition-colors duration-200">Contactanos</a>
             </div>
-            <div className="md:hidden">
+            <div className="md:hidden flex items-center gap-2">
+              <button onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')} className="text-gray-400 hover:text-yellow-400 transition-colors duration-200 p-1.5">
+                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
               <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-white hover:text-yellow-400 focus:outline-none">
                 {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
@@ -164,7 +186,7 @@ export default function Home() {
         </div>
         {isMenuOpen && (
           <div className="md:hidden px-2 pt-2 pb-3 space-y-1 bg-black border-t border-gray-800">
-            {[['#nosotros','Nosotros'],['#diferencial','Servicios'],['#flota','Flota'],['#clientes','Clientes'],['#contacto','Contacto'],['#trabajá','Trabajá con nosotros']].map(([href, label]) => (
+            {[['#nosotros','Nosotros'],['#diferencial','Servicios'],['#flota','Flota'],['#sedes','Sedes'],['#clientes','Clientes'],['#trabajá','Trabajá con nosotros']].map(([href, label]) => (
               <a key={href} href={href} onClick={() => setIsMenuOpen(false)} className="text-white hover:text-yellow-400 block px-3 py-2 rounded-md text-base font-medium">{label}</a>
             ))}
           </div>
@@ -174,7 +196,19 @@ export default function Home() {
       {/* HERO */}
       <section id="inicio" className="relative min-h-screen text-white flex flex-col">
         <div className="absolute inset-0">
-          <img src="/images/casereno-bandera.jpg.jpeg" alt="Camión de carga El Casereño" className="w-full h-full object-cover object-center" style={{ objectPosition: '60% center' }} />
+          <video
+            autoPlay
+            muted
+            loop
+            id="hero-video"
+            playsInline
+            poster="/images/casereno-bandera.jpg.jpeg"
+            className="w-full h-full object-cover object-center"
+            style={{ objectPosition: '60% center' }}
+          >
+            <source src="/videos/hero.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
         </div>
         <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/20"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40"></div>
@@ -182,18 +216,18 @@ export default function Home() {
 
         <div className="relative flex-1 flex items-center">
           <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 w-full py-24">
-            <div className="max-w-2xl">
+            <div className="flex flex-col items-center text-center max-w-2xl mx-auto">
               <div className="inline-flex items-center gap-2 bg-yellow-400/12 border border-yellow-400/30 rounded-full px-4 py-1.5 mb-8">
                 <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse"></div>
                 <span className="text-yellow-400 text-xs font-medium tracking-wide">Monte Caseros, Corrientes · Argentina</span>
               </div>
-              <h1 className="text-5xl md:text-7xl lg:text-8xl font-black leading-none tracking-tight mb-6 uppercase">
-                Transporte<br />
-                <span className="text-yellow-400">El Casereño</span>
+              <h1 className="font-balloon leading-none tracking-tight mb-6 uppercase">
+                <span className="block text-white text-4xl md:text-5xl lg:text-6xl font-black">Transporte</span>
+                <span className="block text-yellow-400 text-6xl md:text-8xl lg:text-9xl font-black whitespace-nowrap">El Casereño</span>
               </h1>
-              <p className="text-gray-300 text-base md:text-lg max-w-lg mb-10 leading-relaxed">
-                Conectando destinos con confianza y responsabilidad.<br />
-                Transporte Nacional e Internacional.
+              <p className="font-balloon text-gray-300 text-base md:text-lg mb-10 leading-relaxed">
+                Transporte Nacional e Internacional.<br />
+                Conectando destinos con confianza y responsabilidad.
               </p>
               <div className="flex flex-row gap-3">
                 <a href="#contacto">
@@ -214,14 +248,14 @@ export default function Home() {
         {/* Stats */}
         <div ref={statsRef} className="relative border-t border-white/10 bg-black/50 backdrop-blur-sm">
           <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-5">
-            <div className="flex flex-wrap justify-center gap-y-4 divide-x divide-white/10">
+            <div className="grid grid-cols-2 sm:grid-cols-4">
               {[
                 { value: counters.units, prefix: '+', label: 'Unidades activas' },
                 { value: counters.years, prefix: '',  label: 'Años de experiencia' },
                 { value: counters.countries, prefix: '', label: 'Países de cobertura' },
                 { value: counters.offices, prefix: '', label: 'Sedes operativas' },
               ].map((stat, i) => (
-                <div key={i} className="px-8 first:pl-8">
+                <div key={i} className="px-6 py-2 text-center border-r border-white/10 last:border-r-0 [&:nth-child(2)]:border-r-0 sm:[&:nth-child(2)]:border-r">
                   <span className="text-yellow-400 text-3xl font-black block leading-none tabular-nums">{stat.prefix}{stat.value}</span>
                   <span className="text-gray-400 text-xs mt-1 block">{stat.label}</span>
                 </div>
@@ -233,7 +267,7 @@ export default function Home() {
 
       {/* FRANJA AMARILLA */}
       <div className="bg-yellow-400 py-4 px-6">
-        <div className="max-w-7xl mx-auto flex flex-wrap justify-center gap-x-10 gap-y-2">
+        <div className="max-w-7xl mx-auto flex flex-wrap justify-start sm:justify-center gap-x-10 gap-y-2">
           {[
             'Transporte temperatura controlada',
             'Cobertura nacional e internacional',
@@ -270,7 +304,7 @@ export default function Home() {
           {/* Timeline horizontal */}
           <div className="mb-14 overflow-x-auto">
             <div className="relative flex min-w-[680px]">
-              <div className="absolute left-0 right-0 h-px bg-yellow-400/15" style={{ top: '38px' }}></div>
+              <div className="timeline-line absolute left-0 right-0 h-px bg-yellow-400/20" style={{ top: '38px' }}></div>
               <div className="timeline-scanner absolute left-0 right-0 h-px" style={{ top: '38px' }}></div>
               {timeline.map((item, index) => {
                 const isVisible = visibleItems.has(index)
@@ -280,10 +314,10 @@ export default function Home() {
                       <span className="text-yellow-400 font-black text-xs sm:text-sm">{item.year}</span>
                     </div>
                     <div className="relative z-10 mb-3 w-3 h-3">
-                      {isVisible && <div className="absolute inset-0 rounded-full bg-yellow-400/40 timeline-dot-ping" style={{ animationDelay: `${index * 300}ms` }} />}
+                      {isVisible && <div className="absolute inset-0 rounded-full bg-yellow-400/50 timeline-dot-seq-ring" style={{ animationDelay: `${index * 600}ms` }} />}
                       <div style={{ transition: 'background-color 0.4s ease, transform 0.4s ease, box-shadow 0.4s ease', transitionDelay: `${index * 70}ms`, transform: isVisible ? 'scale(1)' : 'scale(0.2)', boxShadow: isVisible ? '0 0 12px rgba(250,204,21,0.7)' : 'none' }} className={`w-3 h-3 rounded-full border-2 border-yellow-400 ${isVisible ? 'bg-yellow-400' : 'bg-[#161616]'}`} />
                     </div>
-                    <div style={{ opacity: isVisible ? 1 : 0, transform: isVisible ? 'translateY(0)' : 'translateY(12px)', transition: 'opacity 0.6s ease, transform 0.6s ease', transitionDelay: `${index * 70 + 100}ms` }} className="bg-[#1e1e1e] border border-gray-800 rounded-xl p-2.5 w-full hover:border-yellow-400/60 hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(250,204,21,0.12)] transition-all duration-300 cursor-default">
+                    <div style={{ opacity: isVisible ? 1 : 0, transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(22px) scale(0.95)', transition: 'opacity 0.6s ease, transform 0.6s ease', transitionDelay: `${index * 70 + 100}ms` }} className="timeline-card bg-[#1e1e1e] border border-gray-800 rounded-xl p-2.5 w-full">
                       <h3 className="text-white font-bold text-xs leading-tight">{item.title}</h3>
                       <p className="text-gray-500 text-xs mt-1 leading-relaxed line-clamp-3">{item.desc}</p>
                     </div>
@@ -296,10 +330,10 @@ export default function Home() {
           {/* Contenido + imagen */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
-              <p className="text-gray-400 text-base leading-relaxed mb-5">
+              <p className="text-gray-400 text-base leading-relaxed mb-5 text-justify">
                 Fundada en 2007 por José Luis Gorbeña en Monte Caseros, Corrientes, El Casereño nació de una visión simple: que la fruta fina del litoral merecía llegar fresca a destino. Empezamos transportando arándanos con 3 camiones. Hoy somos más de 55 unidades y seguimos siendo la misma familia.
               </p>
-              <p className="text-gray-400 text-base leading-relaxed mb-8">
+              <p className="text-gray-400 text-base leading-relaxed mb-8 text-justify">
                 Operamos con cargas diarias en modalidad punto a punto o reparticiones, cubriendo todo el territorio argentino y países limítrofes.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -311,11 +345,11 @@ export default function Home() {
                 ))}
               </div>
             </div>
-            <div className="relative">
+            <div className="relative admin-editable">
               <div className="absolute -inset-3 bg-yellow-400 rounded-3xl opacity-10 blur-sm"></div>
               <img src="/images/casereno-flota.png" alt="Flota El Casereño" className="relative rounded-2xl w-full h-[440px] object-cover shadow-2xl" />
               <div className="absolute -bottom-5 -right-5 bg-yellow-400 text-black rounded-2xl p-5 shadow-2xl">
-                <span className="text-4xl font-black block leading-none">18+</span>
+                <span className="text-4xl font-black block leading-none">19+</span>
                 <span className="text-xs font-bold uppercase tracking-wider mt-1 block">años de experiencia</span>
               </div>
             </div>
@@ -329,12 +363,12 @@ export default function Home() {
           <div className="mb-12">
             <p className="text-xs font-semibold uppercase tracking-[2px] text-yellow-400 mb-2">Por qué elegirnos</p>
             <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight mb-3">Nuestro diferencial competitivo</h2>
-            <p className="text-gray-500 text-base max-w-xl">Más de 18 años de experiencia nacional e internacional, comprometidos en brindar un servicio de carga en tiempo y calidad.</p>
+            <p className="text-gray-500 text-base max-w-xl">Más de 19 años de experiencia nacional e internacional, comprometidos en brindar un servicio de carga en tiempo y calidad.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {diferencial.map((card, i) => (
-              <div key={i} className="bg-[#161616] border border-white/6 rounded-xl p-6 hover:border-yellow-400/30 hover:-translate-y-1 transition-all duration-200 cursor-default">
-                <div className="w-11 h-11 bg-yellow-400/10 rounded-lg flex items-center justify-center mb-4 text-yellow-400">
+              <div key={i} className="group bg-[#161616] border border-white/6 rounded-xl p-6 hover:border-yellow-400/40 hover:-translate-y-2 hover:shadow-[0_8px_30px_rgba(250,204,21,0.08)] transition-all duration-300 cursor-default">
+                <div className="w-11 h-11 bg-yellow-400/10 rounded-lg flex items-center justify-center mb-4 text-yellow-400 transition-all duration-300 group-hover:bg-yellow-400/20 group-hover:scale-110 group-hover:rotate-6">
                   {card.icon}
                 </div>
                 <h3 className="text-white font-semibold text-sm mb-2">{card.title}</h3>
@@ -348,13 +382,12 @@ export default function Home() {
       {/* NUESTRA FLOTA */}
       <section id="flota" className="py-24 bg-[#161616]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-12">
+          <div className="mb-10">
             <p className="text-xs font-semibold uppercase tracking-[2px] text-yellow-400 mb-2">Nuestra flota</p>
             <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight mb-3">Capacidad para cada necesidad</h2>
             <p className="text-gray-500 text-base max-w-xl">Todas las unidades equipadas con frío Carrier, en constante mantenimiento y disponibles para carga inmediata.</p>
           </div>
 
-          {/* Números */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {[
               { num: '+55', label: 'Unidades totales' },
@@ -362,103 +395,93 @@ export default function Home() {
               { num: '3',   label: 'Sedes operativas' },
               { num: '5',   label: 'Países de cobertura' },
             ].map((n, i) => (
-              <div key={i} className="bg-[#1e1e1e] border border-white/6 rounded-xl p-5 text-center">
-                <span className="text-yellow-400 text-4xl font-black block leading-none">{n.num}</span>
-                <span className="text-gray-500 text-xs mt-2 block">{n.label}</span>
+              <div key={i} className="group bg-[#1a1a1a] border border-[#2a2a2a] rounded-[12px] p-5 text-center hover:border-yellow-400/40 hover:-translate-y-1 hover:shadow-[0_6px_24px_rgba(250,204,21,0.07)] transition-all duration-300 cursor-default">
+                <span className="text-[#F5C422] text-4xl font-black block leading-none transition-transform duration-300 group-hover:scale-110">{n.num}</span>
+                <span className="text-[#888] text-xs mt-2 block">{n.label}</span>
               </div>
             ))}
           </div>
 
-          {/* Tipos de unidades */}
-          <div className="bg-[#1e1e1e] border border-white/6 rounded-xl p-6 mb-6">
-            <p className="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-4">Tipos de unidades</p>
-            <div className="flex flex-wrap gap-2">
-              {['Tractores','Semirremolques','Balancines','Chasis','Camiones Saider','Camiones abiertos'].map(t => (
-                <span key={t} className="bg-yellow-400/8 border border-yellow-400/20 text-gray-300 text-xs px-3 py-1.5 rounded-md">{t}</span>
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[12px] p-6">
+            <p className="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-6">Tipos de unidades</p>
+            <div className="space-y-5">
+              {tipos.map(t => (
+                <div key={t} className="flex flex-col">
+                  <h4 className="text-white font-semibold text-sm mb-2">{t}</h4>
+                  {modelosPorTipo[t] && modelosPorTipo[t].length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {modelosPorTipo[t].map(m => (
+                        <span key={m} className="text-[#888] text-xs px-3 py-1.5 rounded-[6px] border border-[rgba(245,196,34,0.15)] hover:border-yellow-400/50 hover:text-yellow-400 hover:bg-yellow-400/5 transition-all duration-200 cursor-default">{m}</span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-[#666] text-xs">Sin modelos especificados</span>
+                  )}
+                </div>
               ))}
             </div>
-          </div>
-
-          {/* Sedes */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {[
-              { name: 'Sede Central', loc: 'Monte Caseros, Corrientes' },
-              { name: 'Sucursal Riachuelo', loc: 'Corrientes' },
-              { name: 'Sucursal Ezeiza', loc: 'Buenos Aires' },
-            ].map((s, i) => (
-              <div key={i} className="bg-yellow-400/6 border border-yellow-400/15 rounded-lg px-4 py-3">
-                <p className="text-yellow-400 text-xs font-semibold mb-0.5">{s.name}</p>
-                <p className="text-gray-500 text-xs">{s.loc}</p>
-              </div>
-            ))}
           </div>
         </div>
       </section>
 
-      {/* NUESTRAS SEDES — MAPA */}
-      <section className="py-20 bg-black">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">Nuestras Sedes</h2>
-            <p className="text-yellow-400 font-medium text-lg">Alianzas, Cobertura nacional e internacional</p>
+      {/* NUESTRAS SEDES */}
+      <section id="sedes" className="pb-24 bg-[#161616]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+
+          <div className="mb-10">
+            <p className="text-xs font-semibold uppercase tracking-[2px] text-cyan-400 mb-2">Nuestras sedes</p>
+            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight mb-3">Cobertura nacional y regional</h2>
+            <p className="text-gray-500 text-base max-w-xl">Operamos con sedes propias y sucursales estratégicas para garantizar entregas rápidas en todo el país.</p>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
-            <div className="lg:col-span-2 bg-[#0d0d0d] rounded-2xl border border-gray-800 overflow-hidden min-h-[520px]">
+
+          {/* Mapa izquierda · Sedes + Cobertura derecha */}
+          <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6 items-start">
+
+            {/* Mapa */}
+            <div className="bg-[#07101a] rounded-3xl overflow-hidden border border-cyan-500/10" style={{ minHeight: '520px' }}>
               <MapArgentina />
             </div>
-            <div className="space-y-4">
-              <div className="bg-[#0d0d0d] border border-yellow-400/30 rounded-2xl p-5">
-                <div className="flex items-start gap-3">
-                  <div className="w-3 h-3 rounded-full bg-yellow-400 mt-1.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-yellow-400 font-bold text-xs uppercase tracking-widest mb-1">Sede Central</p>
-                    <p className="text-white font-semibold">Monte Caseros, Corrientes</p>
-                    <p className="text-gray-400 text-sm mt-1">Casa central de operaciones desde 2007</p>
-                  </div>
+
+            {/* Columna derecha: sedes + cobertura */}
+            <div className="flex flex-col gap-4">
+
+              {/* Sedes */}
+              {[
+                { title: 'SEDE CENTRAL',       desc: 'Monte Caseros, Corrientes', labelColor: '#F5C422' },
+                { title: 'SUCURSAL RIACHUELO',  desc: 'Corrientes',               labelColor: '#4A9EBF' },
+                { title: 'SUCURSAL EZEIZA',     desc: 'Buenos Aires',              labelColor: '#4ABF7A' },
+              ].map((s, i) => (
+                <div key={i} className="rounded-[12px] border border-[#2a2a2a] p-5 bg-[#1a1a1a] hover:-translate-y-1 hover:shadow-[0_6px_24px_rgba(0,0,0,0.3)] transition-all duration-300 cursor-default" style={{ '--hover-border': s.labelColor } as React.CSSProperties}>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-semibold uppercase tracking-[1px]" style={{ color: s.labelColor, border: `1px solid ${s.labelColor}33` }}>{s.title}</div>
+                  <p className="text-white font-semibold">{s.desc}</p>
+                  <p className="text-[#888] text-sm mt-1">Base operativa y logística para transporte nacional.</p>
                 </div>
-              </div>
-              <div className="bg-[#0d0d0d] border border-gray-700 rounded-2xl p-5">
-                <div className="flex items-start gap-3">
-                  <div className="w-3 h-3 rounded-full bg-yellow-400/80 mt-1.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-yellow-400/80 font-bold text-xs uppercase tracking-widest mb-1">Sucursal</p>
-                    <p className="text-white font-semibold">Riachuelo, Corrientes</p>
-                    <p className="text-gray-400 text-sm mt-1">Centro de distribución regional</p>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-[#0d0d0d] border border-gray-700 rounded-2xl p-5">
-                <div className="flex items-start gap-3">
-                  <div className="w-3 h-3 rounded-full bg-yellow-400/80 mt-1.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-yellow-400/80 font-bold text-xs uppercase tracking-widest mb-1">Sucursal</p>
-                    <p className="text-white font-semibold">Ezeiza, Buenos Aires</p>
-                    <p className="text-gray-400 text-sm mt-1">Operaciones logísticas en el Gran Buenos Aires</p>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-[#0d0d0d] border border-yellow-400/20 rounded-2xl p-5">
-                <p className="text-yellow-400 font-bold text-xs uppercase tracking-widest mb-3">Cobertura Internacional</p>
-                <div className="grid grid-cols-2 gap-2">
+              ))}
+
+              {/* Cobertura internacional */}
+              <div className="bg-[#07101a] border border-cyan-500/10 rounded-3xl p-5">
+                <p className="text-cyan-400 font-bold text-xs uppercase tracking-widest mb-4">Cobertura internacional</p>
+                <div className="grid grid-cols-4 gap-2">
                   {[
-                    { name: 'Brasil',    code: 'BR', svg: 'br' },
-                    { name: 'Uruguay',   code: 'UY', svg: 'uy' },
-                    { name: 'Chile',     code: 'CL', svg: 'cl' },
-                    { name: 'Paraguay',  code: 'PY', svg: 'py' },
+                    { name: 'Brasil',   svg: 'br' },
+                    { name: 'Uruguay',  svg: 'uy' },
+                    { name: 'Chile',    svg: 'cl' },
+                    { name: 'Paraguay', svg: 'py' },
                   ].map(p => (
-                    <div key={p.name} className="flex flex-col items-center gap-1.5 bg-black/40 border border-gray-800 rounded-xl px-3 py-3 hover:border-yellow-400/40 transition-colors duration-200">
+                    <div key={p.name} className="group flex flex-col items-center gap-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-[12px] px-2 py-4 hover:border-cyan-400/40 hover:-translate-y-1 hover:shadow-[0_4px_16px_rgba(0,0,0,0.3)] transition-all duration-300 cursor-default">
                       <img
                         src={`https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.2.3/flags/4x3/${p.svg}.svg`}
                         alt={p.name}
-                        width={64}
-                        height={43}
-                        className="rounded-[4px] object-cover"
+                        width={48}
+                        height={32}
+                        className="rounded-[3px] object-cover transition-transform duration-300 group-hover:scale-110"
                       />
-                      <p className="text-white font-semibold text-sm">{p.name}</p>
+                      <p className="text-white font-semibold text-xs text-center">{p.name}</p>
                     </div>
                   ))}
                 </div>
               </div>
+
             </div>
           </div>
         </div>
@@ -473,12 +496,31 @@ export default function Home() {
         </div>
         <div className="relative">
           <div className="flex overflow-hidden">
-            <div className="animate-marquee flex gap-8 whitespace-nowrap">
-              {[...clients, ...clients].map((client, index) => (
-                <div key={index} className="inline-flex items-center justify-center px-6 py-3 bg-[#161616] border border-gray-700 rounded-lg flex-shrink-0 hover:border-yellow-400 transition-colors duration-300">
-                  <span className="text-gray-300 font-medium text-sm">{client}</span>
-                </div>
-              ))}
+            <div className="marquee-track">
+              {[...clientLogos, ...clientLogos].map((logo, index) => {
+                const isAbsolute = logo.src.startsWith('/')
+                const imagePath = isAbsolute ? logo.src : `/images/clientes/${logo.src}`
+                const webpPath = !isAbsolute ? `/images/clientes/${logo.src.replace(/\.[^.]+$/, '.webp')}` : undefined
+                return (
+                  <div key={index} className="cliente-logo">
+                    <picture>
+                      {webpPath ? <source srcSet={webpPath} type="image/webp" /> : null}
+                      <img
+                        src={imagePath}
+                        alt={logo.name}
+                        loading="lazy"
+                        onError={(e) => {
+                          const img = e.currentTarget as HTMLImageElement
+                          img.style.display = 'none'
+                          const fallback = img.nextElementSibling as HTMLElement | null
+                          if (fallback) fallback.style.display = 'block'
+                        }}
+                      />
+                    </picture>
+                    <span className="logo-fallback hidden text-gray-600 font-medium text-sm">{logo.name}</span>
+                  </div>
+                )
+              })}
             </div>
           </div>
           <div className="absolute left-0 top-0 h-full w-24 bg-gradient-to-r from-[#0d0d0d] to-transparent z-10 pointer-events-none"></div>
@@ -502,29 +544,29 @@ export default function Home() {
                   <span className="text-gray-500 text-xs mt-1 block">Unidades disponibles</span>
                 </div>
                 <div>
-                  <span className="text-yellow-400 text-4xl font-black block leading-none">18</span>
+                  <span className="text-yellow-400 text-4xl font-black block leading-none">19</span>
                   <span className="text-gray-500 text-xs mt-1 block">Años de experiencia</span>
                 </div>
               </div>
             </div>
 
             {/* Card contacto */}
-            <div className="bg-[#1e1e1e] border border-white/7 rounded-2xl p-8">
-              <div className="w-13 h-13 w-[52px] h-[52px] rounded-full bg-yellow-400/15 border-2 border-yellow-400/30 flex items-center justify-center mb-4">
-                <span className="text-yellow-400 font-black text-lg tracking-wide">JG</span>
+            <div className="bg-[#1e1e1e] border border-white/7 rounded-2xl p-8 hover:border-yellow-400/20 hover:shadow-[0_8px_40px_rgba(250,204,21,0.06)] transition-all duration-300">
+              <div className="w-[52px] h-[52px] rounded-full bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center mb-4 overflow-hidden">
+                <img src="/images/logo.png" alt="El Casereño" className="w-10 h-10 object-contain" />
               </div>
-              <h3 className="text-white font-semibold text-lg mb-0.5">José Luis Gorbeña</h3>
-              <p className="text-gray-500 text-sm mb-6">Gerente Comercial</p>
+              <h3 className="text-white font-semibold text-lg mb-0.5">Transporte El Casereño</h3>
+              <p className="text-gray-500 text-sm mb-6">Transporte Nacional e Internacional</p>
               <div className="h-px bg-white/7 mb-6"></div>
 
               <div className="space-y-4 mb-6">
                 <div className="flex items-center gap-3 text-gray-300 text-sm">
                   <svg className="text-yellow-400 flex-shrink-0" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                  <a href="mailto:josegorbena@grupo-jlg.com" className="hover:text-yellow-400 transition-colors">josegorbena@grupo-jlg.com</a>
+                  <a href="mailto:recepcion@grupo-jlg.com" className="hover:text-yellow-400 transition-colors">recepcion@grupo-jlg.com</a>
                 </div>
                 <div className="flex items-center gap-3 text-gray-300 text-sm">
                   <svg className="text-yellow-400 flex-shrink-0" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.82a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.01z"/></svg>
-                  <a href="tel:+5403775638819" className="hover:text-yellow-400 transition-colors">03775 – 638819</a>
+                  <a href="tel:+5403775408417" className="hover:text-yellow-400 transition-colors">03775-408417</a>
                 </div>
                 <div className="flex items-center gap-3 text-gray-300 text-sm">
                   <svg className="text-yellow-400 flex-shrink-0" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -569,8 +611,8 @@ export default function Home() {
               { role: 'Operadores logísticos', desc: 'Seguimiento de cargas, comunicación con clientes y coordinación con conductores.' },
               { role: 'Otras posiciones', desc: 'Si no encontrás tu perfil pero querés ser parte del equipo, igualmente escribinos.' },
             ].map((item, i) => (
-              <div key={i} className="bg-[#161616] border border-white/6 rounded-xl p-5 hover:border-yellow-400/30 transition-all duration-200">
-                <div className="w-2 h-2 rounded-full bg-yellow-400 mb-3" />
+              <div key={i} className="group bg-[#161616] border border-white/6 rounded-xl p-5 hover:border-yellow-400/40 hover:-translate-y-1 hover:shadow-[0_6px_24px_rgba(250,204,21,0.07)] transition-all duration-300 cursor-default">
+                <div className="w-2 h-2 rounded-full bg-yellow-400 mb-3 transition-transform duration-300 group-hover:scale-150" />
                 <h3 className="text-white font-semibold text-sm mb-2">{item.role}</h3>
                 <p className="text-gray-500 text-xs leading-relaxed">{item.desc}</p>
               </div>
@@ -583,7 +625,7 @@ export default function Home() {
               <p className="text-gray-500 text-sm">Mandanos tu CV y una breve presentación al correo o por WhatsApp.</p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
-              <a href="mailto:josegorbena@grupo-jlg.com?subject=Postulación laboral" className="flex items-center gap-2 bg-white/6 border border-white/10 text-white text-sm font-medium px-5 py-3 rounded-lg hover:border-yellow-400/40 hover:text-yellow-400 transition-all duration-200">
+              <a href="mailto:recursoshumanos@grupo-jlg.com?subject=Postulación laboral" className="flex items-center gap-2 bg-white/6 border border-white/10 text-white text-sm font-medium px-5 py-3 rounded-lg hover:border-yellow-400/40 hover:text-yellow-400 transition-all duration-200">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                 Enviar CV por email
               </a>
@@ -598,22 +640,16 @@ export default function Home() {
 
       {/* FOOTER */}
       <footer className="bg-[#0d0d0d] border-t border-white/6 py-8 px-8">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-4">
-          <img src="/images/logo.png" alt="El Casereño Logo" className="h-7 w-auto scale-[2.05] md:mr-auto" />
-          <div className="flex items-center gap-4">
-            <a href="https://www.facebook.com/share/1H3te6ykUX/" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-yellow-400 transition-colors duration-200" aria-label="Facebook">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
-            </a>
-            <a href="https://www.instagram.com/transporte.casereno.sa?utm_source=qr&igsh=MXNtZGlkNjZjZHdsZg==" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-yellow-400 transition-colors duration-200" aria-label="Instagram">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-            </a>
-          </div>
-          <span className="text-gray-600 text-xs text-center md:ml-auto">© 2025 Transporte El Casereño S.A. Todos los derechos reservados · Diseño y desarrollo por Código20</span>
+        <div className="max-w-7xl mx-auto flex flex-col items-center gap-4 text-center">
+          <img src="/images/logo_footer.jpeg" alt="Logo footer El Casereño" className="h-8 w-auto" />
+          <img src="/images/hecho-en-corrientes.png.jpeg" alt="Hecho en Corrientes" className="h-16 w-auto opacity-90" />
+          <span className="text-gray-600 text-xs">© 2026 Transporte El Casereño S.A. Todos los derechos reservados · Diseño y desarrollo por Código20</span>
+          <AdminBar />
         </div>
       </footer>
 
       {/* WHATSAPP FLOTANTE */}
-      <a href="https://wa.me/5403775638819" target="_blank" rel="noopener noreferrer"
+      <a href="https://wa.me/5403775408417" target="_blank" rel="noopener noreferrer"
         className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition-all duration-300 hover:scale-110 z-50 group">
         <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.149-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>

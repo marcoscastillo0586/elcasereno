@@ -1,8 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@font-face {
+  font-family: 'Balloon';
+  src: url('/fonts/balloon.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   --foreground-rgb: 0, 0, 0;
@@ -10,12 +18,15 @@
   --background-end-rgb: 255, 255, 255;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+html {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-balloon {
+  font-family: 'Balloon', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 body {
@@ -26,6 +37,14 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
 }
 
 @layer utilities {
@@ -55,12 +74,40 @@ body {
   100% { transform: translateX(-50%); }
 }
 
-.animate-marquee {
-  animation: marquee 40s linear infinite;
+.marquee-track {
+  display: flex;
+  gap: 24px;
+  animation: marquee 30s linear infinite;
+  will-change: transform;
 }
 
-.animate-marquee:hover {
+.marquee-track:hover {
   animation-play-state: paused;
+}
+
+/* Timeline: línea que se dibuja al aparecer */
+@keyframes timeline-line-draw {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+.timeline-line {
+  transform-origin: left center;
+  animation: timeline-line-draw 1.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Timeline: card con hover */
+.timeline-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  cursor: default;
+}
+.timeline-card:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 10px 28px rgba(250, 204, 21, 0.15) !important;
+  border-color: rgba(250, 204, 21, 0.55) !important;
+}
+[data-theme="light"] .timeline-card:hover {
+  box-shadow: 0 10px 28px rgba(180, 83, 9, 0.12) !important;
+  border-color: rgba(180, 83, 9, 0.45) !important;
 }
 
 /* Timeline: luz viajera sobre la línea horizontal */
@@ -81,7 +128,26 @@ body {
   animation: scanner 4s ease-in-out infinite;
 }
 
-/* Timeline: ping en los dots */
+/* Timeline: onda secuencial izquierda → derecha */
+@keyframes dot-seq-ring-dark {
+  0%        { transform: scale(1);   opacity: 0.8; }
+  13%       { transform: scale(3.4); opacity: 0;   }
+  14%, 100% { transform: scale(1);   opacity: 0;   }
+}
+@keyframes dot-seq-ring-light {
+  0%        { transform: scale(1);   opacity: 0.65; }
+  13%       { transform: scale(3.4); opacity: 0;    }
+  14%, 100% { transform: scale(1);   opacity: 0;    }
+}
+.timeline-dot-seq-ring {
+  animation: dot-seq-ring-dark 5.4s ease-out infinite;
+}
+[data-theme="light"] .timeline-dot-seq-ring {
+  animation-name: dot-seq-ring-light;
+  background-color: rgba(180,83,9,0.45) !important;
+}
+
+/* Timeline: ping en los dots (fallback) */
 @keyframes dot-ping {
   0%   { transform: scale(1);   opacity: 0.7; }
   70%  { transform: scale(2.4); opacity: 0; }
@@ -90,4 +156,143 @@ body {
 .timeline-dot-ping {
   animation: dot-ping 2.5s ease-out infinite;
 }
+
+/* Ícono de cards diferencial */
+.card-icon-wrapper {
+  position: relative;
+  border-radius: 100rem;
+  justify-content: center;
+  align-items: center;
+  width: 4rem;
+  height: 4rem;
+  transition: transform .5s;
+  display: flex;
+  transform: scale(1);
+}
+.card-icon-wrapper:hover {
+  transform: scale(1.15);
+}
+
+/* Tarjetas de clientes */
+.cliente-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 220px;
+  height: 120px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.cliente-logo:hover {
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+  transform: translateY(-8px) scale(1.03);
+}
+
+.cliente-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: none;
+  transition: transform 0.3s ease;
+}
+
+/* ===== LIGHT THEME ===== */
+
+/* Fondos de secciones */
+[data-theme="light"] .min-h-screen          { background-color: #f5f5f0 !important; }
+[data-theme="light"] #nosotros              { background-color: #ffffff !important; }
+[data-theme="light"] #diferencial          { background-color: #f5f5f0 !important; }
+[data-theme="light"] #flota                { background-color: #ffffff !important; }
+[data-theme="light"] #sedes                { background-color: #ffffff !important; }
+[data-theme="light"] #clientes             { background-color: #f0f0eb !important; }
+[data-theme="light"] #contacto             { background-color: #ffffff !important; }
+[data-theme="light"] #trabajá              { background-color: #f5f5f0 !important; }
+[data-theme="light"] footer                { background-color: #ffffff !important; border-color: #e0e0d8 !important; }
+
+/* Nav */
+[data-theme="light"] nav                   { background-color: rgba(250,250,248,0.97) !important; border-bottom-color: #e0e0d8 !important; }
+[data-theme="light"] nav a:not(.bg-yellow-400) { color: #333333 !important; }
+[data-theme="light"] nav .text-white       { color: #333333 !important; }
+[data-theme="light"] .md\:hidden .bg-black { background-color: #ffffff !important; }
+[data-theme="light"] .md\:hidden .border-gray-800 { border-color: #e0e0d8 !important; }
+
+/* Cards y contenedores oscuros */
+[data-theme="light"] .bg-\[\#161616\]      { background-color: #ffffff !important; }
+[data-theme="light"] .bg-\[\#1a1a1a\]      { background-color: #f0f0eb !important; }
+[data-theme="light"] .bg-\[\#1e1e1e\]      { background-color: #f8f8f5 !important; }
+[data-theme="light"] .bg-\[\#0d0d0d\]      { background-color: #f5f5f0 !important; }
+[data-theme="light"] .bg-\[\#07101a\]      { background-color: #e8f0f5 !important; }
+[data-theme="light"] .bg-\[\#0d1320\]      { background-color: #e8f0f5 !important; }
+
+/* Hero stats bar */
+[data-theme="light"] .bg-black\/50         { background-color: rgba(245,245,240,0.85) !important; }
+
+/* Texto — excluimos el hero (#inicio) para que siga blanco sobre el video */
+[data-theme="light"] .text-white:not(#inicio *):not(.bg-yellow-400):not(button.bg-yellow-400) { color: #111111 !important; }
+[data-theme="light"] .text-gray-300:not(#inicio *)  { color: #444444 !important; }
+[data-theme="light"] .text-gray-400:not(#inicio *)  { color: #555555 !important; }
+[data-theme="light"] .text-gray-500:not(#inicio *)  { color: #666666 !important; }
+[data-theme="light"] .text-\[\#888\]       { color: #666666 !important; }
+[data-theme="light"] .text-\[\#666\]       { color: #888888 !important; }
+
+/* Bordes */
+[data-theme="light"] .border-\[\#2a2a2a\]  { border-color: #e0e0d8 !important; }
+[data-theme="light"] .border-\[\#333\]     { border-color: #d8d8d0 !important; }
+[data-theme="light"] .border-gray-700      { border-color: #d0d0c8 !important; }
+[data-theme="light"] .border-gray-800      { border-color: #d8d8d0 !important; }
+[data-theme="light"] .border-white\/6,
+[data-theme="light"] .border-white\/7,
+[data-theme="light"] .border-white\/8,
+[data-theme="light"] .border-white\/10     { border-color: #e0e0d8 !important; }
+
+/* Franja amarilla del hero stats */
+[data-theme="light"] .border-white\/10 { border-color: #e0e0d8 !important; }
+
+/* Dividers */
+[data-theme="light"] .bg-white\/7         { background-color: #e8e8e0 !important; }
+[data-theme="light"] .bg-white\/6         { background-color: #f0f0e8 !important; }
+[data-theme="light"] .bg-white\/8         { background-color: #e8e8e0 !important; }
+
+/* Timeline cards */
+[data-theme="light"] .bg-\[\#1e1e1e\].border { background-color: #f8f8f5 !important; border-color: #e0e0d8 !important; }
+
+/* Clientes marquee — las tarjetas ya son blancas por defecto */
+[data-theme="light"] .cliente-logo { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10) !important; }
+
+/* Amarillo → ámbar oscuro en modo claro para legibilidad */
+[data-theme="light"] .text-yellow-400:not(#inicio *) { color: #B45309 !important; }
+[data-theme="light"] .text-\[#F5C422\]               { color: #B45309 !important; }
+[data-theme="light"] .border-yellow-400\/40           { border-color: #B4530966 !important; }
+[data-theme="light"] .border-yellow-400\/30           { border-color: #B4530940 !important; }
+[data-theme="light"] .border-yellow-400\/20           { border-color: #B4530933 !important; }
+[data-theme="light"] .border-yellow-400\/10           { border-color: #B4530920 !important; }
+
+/* Dots del timeline y decorativos pequeños */
+[data-theme="light"] .w-3.h-3.rounded-full           { background-color: #B45309 !important; border-color: #B45309 !important; box-shadow: 0 0 12px rgba(180,83,9,0.55) !important; }
+[data-theme="light"] .w-2.h-2.rounded-full.bg-yellow-400 { background-color: #B45309 !important; }
+[data-theme="light"] .timeline-dot-ping              { background-color: rgba(180,83,9,0.35) !important; }
+
+/* Border de los badges (Seriedad, Honestidad, etc.) */
+[data-theme="light"] .border-yellow-400              { border-color: #B45309 !important; }
+
+/* Timeline línea y scanner en modo claro */
+[data-theme="light"] .timeline-line                  { background-color: rgba(180,83,9,0.35) !important; }
+[data-theme="light"] .timeline-scanner {
+  background: linear-gradient(
+    90deg,
+    transparent 0%, transparent 35%,
+    rgba(180, 83, 9, 0.65) 50%,
+    transparent 65%, transparent 100%
+  ) !important;
+  background-size: 40% 100% !important;
+}
+
+/* Timeline cards en modo claro */
+[data-theme="light"] .timeline-card                  { background-color: #ffffff !important; border-color: #d8d8d0 !important; box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important; }
+[data-theme="light"] .timeline-card:hover            { border-color: rgba(180,83,9,0.5) !important; box-shadow: 0 10px 28px rgba(180,83,9,0.14) !important; }
 

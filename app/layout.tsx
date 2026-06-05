@@ -1,12 +1,14 @@
+import 'leaflet/dist/leaflet.css'
 import './globals.css'
-import { Inter } from 'next/font/google'
-
-const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
   title: 'El Casereño - Transporte de Cargas',
   description: 'Empresa especializada en transporte de cargas. Conectamos tu negocio con destino seguro y puntual.',
   keywords: 'transporte, cargas, logística, Argentina, El Casereño',
+  icons: {
+    icon: '/images/logo.png',
+    apple: '/images/logo.png',
+  },
 }
 
 export default function RootLayout({
@@ -16,7 +18,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className={inter.className}>
+      <body>
         {children}
       </body>
     </html>
