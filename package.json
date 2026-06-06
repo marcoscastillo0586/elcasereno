@@ -29,6 +29,7 @@
     "typescript": "^5.9.3"
   },
   "devDependencies": {
+    "@types/formidable": "^3.5.1",
     "eslint": "^8.52.0",
     "eslint-config-next": "^14.0.0"
   },
