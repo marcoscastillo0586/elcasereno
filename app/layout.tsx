@@ -2,7 +2,7 @@ import 'leaflet/dist/leaflet.css'
 import './globals.css'
 
 export const metadata = {
-  title: 'El Casereño - Transporte de Cargas',
+ 
   description: 'Empresa especializada en transporte de cargas. Conectamos tu negocio con destino seguro y puntual.',
   keywords: 'transporte, cargas, logística, Argentina, El Casereño',
   icons: {

@@ -55,7 +55,7 @@ export default function AdminPage() {
         <div className="mt-6">
           <p className="text-xs text-gray-400 mb-2">Video actual (preview):</p>
           <video id="hero-preview" controls className="w-full bg-black rounded">
-            <source src="/videos/hero.mp4" type="video/mp4" />
+            <source src="/videos/hero.webm" type="video/webm" />
             Your browser does not support the video tag.
           </video>
         </div>

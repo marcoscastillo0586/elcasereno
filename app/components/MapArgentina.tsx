@@ -5,11 +5,12 @@ import { useEffect, useRef } from 'react'
 const PROVINCES_URL = 'https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/argentina-provinces.geojson'
 
 // Colores oscuros y elegantes por país (world GeoJSON)
-const COUNTRY_STYLES: Record<string, { fill: string; opacity: number }> = {
-  BRA: { fill: '#2D5A3D', opacity: 0.7 },
-  URY: { fill: '#2D4A6B', opacity: 0.7 },
-  CHL: { fill: '#6B2D2D', opacity: 0.7 },
-  PRY: { fill: '#6B4A2D', opacity: 0.7 },
+const COUNTRY_STYLES: Record<string, { fill: string; border: string; opacity: number }> = {
+  BRA: { fill: '#105030', border: '#10b981', opacity: 0.65 },
+  URY: { fill: '#1e3a8a', border: '#3b82f6', opacity: 0.65 },
+  CHL: { fill: '#7f1d1d', border: '#ef4444', opacity: 0.65 },
+  PRY: { fill: '#7c2d12', border: '#f97316', opacity: 0.65 },
+  BOL: { fill: '#27272a', border: '#3f3f46', opacity: 0.3 },
 }
 
 // Provincias con mayor presencia de El Casereño
@@ -72,52 +73,13 @@ export default function MapArgentina() {
         subdomains: 'abcd',
       }).addTo(map)
 
-      // Inyecta el <marker> de flecha en el SVG interno de Leaflet
-      const injectSVGDefs = () => {
-        // Forzar creación del renderer SVG con un marcador temporal invisible
-        const temp = L.circleMarker([0, 0] as [number, number], {
-          radius: 0, opacity: 0, fillOpacity: 0,
-        }).addTo(map)
-
-        const svgEl = map.getPane('overlayPane')?.querySelector('svg') as SVGSVGElement | null
-        temp.remove()
-
-        if (!svgEl) return
-
-        let defs = svgEl.querySelector('defs')
-        if (!defs) {
-          defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
-          svgEl.insertBefore(defs, svgEl.firstChild)
-        }
-
-        if (!defs.querySelector('#arrow-yellow')) {
-          const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker')
-          marker.setAttribute('id', 'arrow-yellow')
-          marker.setAttribute('viewBox', '0 0 10 10')
-          marker.setAttribute('refX', '9')
-          marker.setAttribute('refY', '5')
-          marker.setAttribute('markerWidth', '7')
-          marker.setAttribute('markerHeight', '7')
-          marker.setAttribute('orient', 'auto')
-
-          const arrowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-          arrowPath.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z')
-          arrowPath.setAttribute('fill', '#F5C422')
-
-          marker.appendChild(arrowPath)
-          defs.appendChild(marker)
-        }
-      }
-
-      injectSVGDefs()
-
       // Cargar GeoJSON de países con colores sólidos elegantes
-      fetch('https://cdn.jsdelivr.net/gh/datasets/geo-countries/data/countries.geojson')
+      fetch('/data/south-america-countries.geojson')
         .then(r => r.json())
         .then(data => {
           L.geoJSON(data, {
             style: (feature: any) => {
-              const code: string = feature.properties.ISO_A3
+              const code: string = (feature.properties['ISO3166-1-Alpha-3'] || feature.properties.ISO_A3 || feature.properties.iso_a3 || '').toUpperCase()
 
               // Argentina la maneja el layer de provincias, acá la ocultamos
               if (code === 'ARG') {
@@ -126,14 +88,14 @@ export default function MapArgentina() {
 
               const style = COUNTRY_STYLES[code]
               if (!style) {
-                return { fillOpacity: 0, color: 'transparent', weight: 0, opacity: 0 }
+                return { fillOpacity: 0.15, color: '#333333', weight: 1, opacity: 0.2 }
               }
               return {
                 fillColor: style.fill,
                 fillOpacity: style.opacity,
-                color: '#333333',
-                weight: 1,
-                opacity: 1,
+                color: style.border,
+                weight: 1.5,
+                opacity: 0.7,
               }
             },
           }).addTo(map)
@@ -141,53 +103,44 @@ export default function MapArgentina() {
         .catch(err => console.log('Countries GeoJSON error:', err))
 
       // Provincias de Argentina
-      let provincias: any[] = []
-      fetch('https://cdn.jsdelivr.net/gh/mgaitan/latam-geojson@master/argentina-provincias.json')
+      fetch('/data/argentina-provincias.geojson')
         .then(r => r.json())
         .then(data => {
           L.geoJSON(data, {
-            style: () => ({
-              fillColor: '#1a1a1a',
-              fillOpacity: 0.7,
-              color: '#F5C422',
-              weight: 1.2,
-              opacity: 0.5
-            }),
-            onEachFeature: (feature: any) => {
-              // Calcular centroide — soporta Polygon y MultiPolygon
-              let ring: [number, number][] | null = null
-              if (feature.geometry.type === 'Polygon') {
-                ring = feature.geometry.coordinates[0]
-              } else if (feature.geometry.type === 'MultiPolygon') {
-                // usar el anillo más largo (polígono principal)
-                let maxLen = 0
-                for (const poly of feature.geometry.coordinates) {
-                  if (poly[0].length > maxLen) { maxLen = poly[0].length; ring = poly[0] }
-                }
+            style: (feature: any) => {
+              const name = feature.properties.nombre || feature.properties.provincia || feature.properties.iso_nombre || '';
+              const isPrimary = PROVINCES_PRIMARY.some(p => name.toLowerCase().includes(p.toLowerCase()));
+              const isSecondary = PROVINCES_SECONDARY.some(p => name.toLowerCase().includes(p.toLowerCase()));
+
+              let fillColor = '#1e293b';
+              let fillOpacity = 0.45;
+              let color = '#F5C422';
+              let weight = 1.0;
+              let opacity = 0.3;
+
+              if (isPrimary) {
+                fillColor = '#F5C422';
+                fillOpacity = 0.35;
+                color = '#F5C422';
+                weight = 2.0;
+                opacity = 0.8;
+              } else if (isSecondary) {
+                fillColor = '#F5C422';
+                fillOpacity = 0.15;
+                color = '#F5C422';
+                weight = 1.3;
+                opacity = 0.5;
               }
-              if (!ring) return
-              let lat = 0, lng = 0
-              ring.forEach((c: [number, number]) => { lng += c[0]; lat += c[1] })
-              provincias.push({ lat: lat / ring.length, lng: lng / ring.length })
+
+              return {
+                fillColor,
+                fillOpacity,
+                color,
+                weight,
+                opacity
+              }
             },
           }).addTo(map)
-
-          // Flechas animadas desde cada sede hacia cada provincia
-          setTimeout(() => {
-            SEDES.forEach(sede => {
-              provincias.forEach(provincia => {
-                const polyline = L.polyline([[sede.lat, sede.lng], [provincia.lat, provincia.lng]], {
-                  color: '#F5C422',
-                  weight: 1.2,
-                  opacity: 0.45,
-                  dashArray: '5,7',
-                  className: 'animated-route',
-                }).addTo(map)
-                const el = (polyline as any).getElement() as SVGElement | null
-                if (el) el.setAttribute('marker-end', 'url(#arrow-yellow)')
-              })
-            })
-          }, 500)
         })
         .catch(() => console.log('GeoJSON load error'))
 
@@ -232,15 +185,26 @@ export default function MapArgentina() {
       })
 
       map.invalidateSize()
-    }).catch(() => null)
 
-    return () => {
-      active = false
-      if (map) {
-        map.remove()
-        mapRef.current = null
+      // ResizeObserver para redimensionar el mapa cuando cambie el tamaño del contenedor
+      const resizeObserver = new ResizeObserver(() => {
+        if (map) {
+          map.invalidateSize()
+        }
+      })
+      if (containerRef.current) {
+        resizeObserver.observe(containerRef.current)
       }
-    }
+
+      return () => {
+        active = false
+        resizeObserver.disconnect()
+        if (map) {
+          map.remove()
+          mapRef.current = null
+        }
+      }
+    }).catch(() => null)
   }, [])
 
   return (
@@ -277,19 +241,9 @@ export default function MapArgentina() {
         .leaflet-control-zoom a:hover {
           background: #272727 !important;
         }
-        @keyframes dashMovement {
-          0% {
-            stroke-dashoffset: 0;
-          }
-          100% {
-            stroke-dashoffset: -10;
-          }
-        }
-        .animated-route {
-          animation: dashMovement 3s linear infinite;
-        }
+
       `}</style>
-      <div ref={containerRef} style={{ width: '100%', height: '100%', minHeight: '420px', background: '#111' }} />
+      <div ref={containerRef} className="w-full h-full min-h-[420px] lg:min-h-0" style={{ background: '#111' }} />
     </>
   )
 }
