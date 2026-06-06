@@ -2,12 +2,14 @@ import 'leaflet/dist/leaflet.css'
 import './globals.css'
 
 export const metadata = {
- 
   description: 'Empresa especializada en transporte de cargas. Conectamos tu negocio con destino seguro y puntual.',
   keywords: 'transporte, cargas, logística, Argentina, El Casereño',
   icons: {
     icon: '/images/logo.png',
     apple: '/images/logo.png',
+  },
+  verification: {
+    google: 'kXgXmj54Ka6GiPVeCYh7c6gs35O3pdjZpFmCOmGEGbQ',
   },
 }
 
