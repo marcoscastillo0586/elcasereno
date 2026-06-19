@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Menu, X, CheckCircle, Thermometer, Globe, Shield, Clock, Users, Star, Sun, Moon } from 'lucide-react'
+import { Menu, X, CheckCircle, Thermometer, Globe, Shield, Clock, Users, Star, Sun, Moon, Camera } from 'lucide-react'
 import MapArgentina from './components/MapArgentina'
 import AdminBar from './components/AdminBar'
 
@@ -11,7 +11,11 @@ export default function Home() {
   const itemRefs = useRef<(HTMLDivElement | null)[]>([])
   const statsRef = useRef<HTMLDivElement>(null)
   const [counters, setCounters] = useState({ units: 0, years: 0, offices: 0, countries: 0 })
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+  const [theme, setTheme] = useState<'dark' | 'light'>('light')
+  const [selectedItem, setSelectedItem] = useState<{ year: string; title: string; desc: string; photos?: string[] } | null>(null)
+  const [activeTimelineIndex, setActiveTimelineIndex] = useState(0)
+  const autoTimelineRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const timelineContainerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const saved = localStorage.getItem('casereno-theme') as 'dark' | 'light' | null
@@ -68,6 +72,40 @@ export default function Home() {
     return () => { clearInterval(animTimer); clearInterval(loopTimer) }
   }, [])
 
+  useEffect(() => {
+    if (!selectedItem) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setSelectedItem(null) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [selectedItem])
+
+  const startAutoTimeline = () => {
+    if (autoTimelineRef.current) clearInterval(autoTimelineRef.current)
+    autoTimelineRef.current = setInterval(() => {
+      setActiveTimelineIndex(prev => (prev + 1) % timeline.length)
+    }, 2800)
+  }
+
+  useEffect(() => {
+    startAutoTimeline()
+    return () => { if (autoTimelineRef.current) clearInterval(autoTimelineRef.current) }
+  }, [])
+
+  useEffect(() => {
+    const container = timelineContainerRef.current
+    const activeEl = itemRefs.current[activeTimelineIndex]
+    if (!container || !activeEl) return
+    const containerRect = container.getBoundingClientRect()
+    const elRect = activeEl.getBoundingClientRect()
+    const scrollOffset = elRect.left - containerRect.left - containerRect.width / 2 + elRect.width / 2
+    container.scrollBy({ left: scrollOffset, behavior: 'smooth' })
+  }, [activeTimelineIndex])
+
+  const handleTimelineClick = (index: number) => {
+    setActiveTimelineIndex(index)
+    startAutoTimeline()
+  }
+
   const features = [
     "19 años de experiencia",
     "Cobertura nacional e internacional",
@@ -79,15 +117,15 @@ export default function Home() {
   ]
 
   const timeline = [
-    { year: '1983', title: 'Grupo JLG', desc: 'Fundación del Autoservicio y Supermercado por José Luis Gorbeña y Verónica Roverano' },
-    { year: '2006', title: 'Primeros camiones', desc: 'Foco en distribución de arándanos con 2 camiones desde Concordia' },
-    { year: '2007', title: 'Nace El Casereño', desc: 'Fundación formal de Transporte El Casereño S.A. con 4 unidades en Monte Caseros' },
-    { year: '2009', title: 'Expansión Brasil', desc: 'Inicio de operaciones de logística internacional con Brasil' },
-    { year: '2012', title: 'Región ampliada', desc: 'Expansión a Uruguay, Chile y Paraguay. Fortalecimiento logística nacional' },
-    { year: '2017', title: '+30 unidades', desc: 'Crecimiento sostenido de la flota a más de 30 unidades' },
-    { year: '2023', title: 'Nueva sede central', desc: 'Inauguración de la nueva casa central en Monte Caseros, Corrientes' },
-    { year: '2024', title: '+55 unidades', desc: 'Flota de más de 55 unidades modernas con equipo frío Carrier' },
-    { year: '2025', title: 'Seguimos creciendo', desc: 'Nuevo centro de distribución en Riachuelo y sede en Ezeiza, Buenos Aires' },
+    { year: '1983', title: 'Grupo JLG', desc: 'Fundación del Autoservicio y Supermercado por José Luis Gorbeña y Verónica Roverano', photos: ['https://picsum.photos/seed/jlg83a/600/400', 'https://picsum.photos/seed/jlg83b/600/400'] },
+    { year: '2006', title: 'Primeros camiones', desc: 'Foco en distribución de arándanos con 2 camiones desde Concordia', photos: ['https://picsum.photos/seed/cas06a/600/400', 'https://picsum.photos/seed/cas06b/600/400'] },
+    { year: '2007', title: 'Nace El Casereño', desc: 'Fundación formal de Transporte El Casereño S.A. con 4 unidades en Monte Caseros', photos: ['/images/casereno-bandera.jpg.jpeg', 'https://picsum.photos/seed/cas07b/600/400'] },
+    { year: '2009', title: 'Expansión Brasil', desc: 'Inicio de operaciones de logística internacional con Brasil', photos: ['https://picsum.photos/seed/cas09a/600/400', 'https://picsum.photos/seed/cas09b/600/400'] },
+    { year: '2012', title: 'Región ampliada', desc: 'Expansión a Uruguay, Chile y Paraguay. Fortalecimiento logística nacional', photos: ['https://picsum.photos/seed/cas12a/600/400', 'https://picsum.photos/seed/cas12b/600/400'] },
+    { year: '2017', title: '+30 unidades', desc: 'Crecimiento sostenido de la flota a más de 30 unidades', photos: ['/images/casereno-flota.png', 'https://picsum.photos/seed/cas17b/600/400'] },
+    { year: '2023', title: 'Nueva sede central', desc: 'Inauguración de la nueva casa central en Monte Caseros, Corrientes', photos: ['https://picsum.photos/seed/cas23a/600/400', 'https://picsum.photos/seed/cas23b/600/400'] },
+    { year: '2024', title: '+55 unidades', desc: 'Flota de más de 55 unidades modernas con equipo frío Carrier', photos: ['/images/casereno-flota.png', '/images/casereno-bandera.jpg.jpeg'] },
+    { year: '2025', title: 'Seguimos creciendo', desc: 'Nuevo centro de distribución en Riachuelo y sede en Ezeiza, Buenos Aires', photos: ['https://picsum.photos/seed/cas25a/600/400', 'https://picsum.photos/seed/cas25b/600/400'] },
   ]
 
   const [clientLogos, setClientLogos] = useState([
@@ -161,10 +199,14 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-[68px]">
             <div className="flex items-center">
-              <img src="/images/logo.png" alt="El Casereño Logo" className="h-9 w-auto scale-[2.05]" />
+              <img
+                src={theme === 'light' ? '/images/logos/casereno.png' : '/images/logos/caserenoBlancoCorriente.png'}
+                alt="El Casereño Logo"
+                className="h-10 w-auto"
+              />
             </div>
             <div className="hidden md:flex items-baseline gap-8">
-              {[['#nosotros', 'Nosotros'], ['#diferencial', 'Servicios'], ['#flota', 'Flota'], ['#sedes', 'Sedes'], ['#clientes', 'Clientes'], ['#trabajá', 'Trabajá con nosotros']].map(([href, label]) => (
+              {[['#nosotros', 'Nosotros'], ['#diferencial', 'Servicios'], ['#flota', 'Flota'], ['#sedes', 'Sedes'], ['#clientes', 'Clientes'], ['/noticias', 'Últimas noticias'], ['#trabajá', 'Trabajá con nosotros']].map(([href, label]) => (
                 <a key={href} href={href} className="text-gray-300 hover:text-yellow-400 text-sm font-medium transition-colors duration-200">{label}</a>
               ))}
             </div>
@@ -186,7 +228,7 @@ export default function Home() {
         </div>
         {isMenuOpen && (
           <div className="md:hidden px-2 pt-2 pb-3 space-y-1 bg-black border-t border-gray-800">
-            {[['#nosotros', 'Nosotros'], ['#diferencial', 'Servicios'], ['#flota', 'Flota'], ['#sedes', 'Sedes'], ['#clientes', 'Clientes'], ['#trabajá', 'Trabajá con nosotros']].map(([href, label]) => (
+            {[['#nosotros', 'Nosotros'], ['#diferencial', 'Servicios'], ['#flota', 'Flota'], ['#sedes', 'Sedes'], ['#clientes', 'Clientes'], ['/noticias', 'Últimas noticias'], ['#trabajá', 'Trabajá con nosotros']].map(([href, label]) => (
               <a key={href} href={href} onClick={() => setIsMenuOpen(false)} className="text-white hover:text-yellow-400 block px-3 py-2 rounded-md text-base font-medium">{label}</a>
             ))}
           </div>
@@ -221,10 +263,11 @@ export default function Home() {
                 <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse"></div>
                 <span className="text-yellow-400 text-xs font-medium tracking-wide">Monte Caseros, Corrientes · Argentina</span>
               </div>
-              <h1 className="font-balloon leading-none tracking-tight mb-6 uppercase">
-                <span className="block text-white text-4xl md:text-5xl lg:text-6xl font-black">Transporte</span>
-                <span className="block text-yellow-400 text-6xl md:text-8xl lg:text-9xl font-black whitespace-nowrap">El Casereño</span>
-              </h1>
+              <img
+                src="/images/logos/caserenoBlanco.png"
+                alt="Transporte El Casereño"
+                className="mb-6 w-[95vw] max-w-[1200px] h-auto drop-shadow-2xl"
+              />
               <p className="font-balloon text-gray-300 text-base md:text-lg mb-10 leading-relaxed">
                 Transporte Nacional e Internacional.<br />
                 Conectando destinos con confianza y responsabilidad.
@@ -302,24 +345,51 @@ export default function Home() {
           </div>
 
           {/* Timeline horizontal */}
-          <div className="mb-14 overflow-x-auto">
+          <div ref={timelineContainerRef} className="mb-14 overflow-x-auto timeline-scroll bg-[#111111] rounded-2xl px-4 py-6 border border-white/5">
             <div className="relative flex min-w-[680px]">
               <div className="timeline-line absolute left-0 right-0 h-px bg-yellow-400/20" style={{ top: '38px' }}></div>
               <div className="timeline-scanner absolute left-0 right-0 h-px" style={{ top: '38px' }}></div>
               {timeline.map((item, index) => {
                 const isVisible = visibleItems.has(index)
+                const isActive = activeTimelineIndex === index
                 return (
                   <div key={index} ref={el => { itemRefs.current[index] = el }} className="flex-1 flex flex-col items-center px-1.5">
                     <div style={{ opacity: isVisible ? 1 : 0, transform: isVisible ? 'translateY(0)' : 'translateY(-10px)', transition: 'opacity 0.5s ease, transform 0.5s ease', transitionDelay: `${index * 70}ms` }} className="h-7 flex items-center mb-1">
-                      <span className="text-yellow-400 font-black text-xs sm:text-sm">{item.year}</span>
+                      <span style={{ color: isActive ? '#F5C422' : '#92600a' }} className="font-black text-xs sm:text-sm transition-colors duration-300">{item.year}</span>
                     </div>
                     <div className="relative z-10 mb-3 w-3 h-3">
-                      {isVisible && <div className="absolute inset-0 rounded-full bg-yellow-400/50 timeline-dot-seq-ring" style={{ animationDelay: `${index * 600}ms` }} />}
-                      <div style={{ transition: 'background-color 0.4s ease, transform 0.4s ease, box-shadow 0.4s ease', transitionDelay: `${index * 70}ms`, transform: isVisible ? 'scale(1)' : 'scale(0.2)', boxShadow: isVisible ? '0 0 12px rgba(250,204,21,0.7)' : 'none' }} className={`w-3 h-3 rounded-full border-2 border-yellow-400 ${isVisible ? 'bg-yellow-400' : 'bg-[#161616]'}`} />
+                      {isActive && <div className="absolute inset-0 rounded-full bg-yellow-400/60 animate-ping" />}
+                      {isVisible && !isActive && <div className="absolute inset-0 rounded-full bg-yellow-400/50 timeline-dot-seq-ring" style={{ animationDelay: `${index * 600}ms` }} />}
+                      <div style={{
+                        transition: 'transform 0.4s ease, box-shadow 0.4s ease',
+                        transitionDelay: `${index * 70}ms`,
+                        transform: isVisible ? (isActive ? 'scale(1.4)' : 'scale(1)') : 'scale(0.2)',
+                        boxShadow: isActive ? '0 0 20px rgba(250,204,21,1)' : isVisible ? '0 0 8px rgba(250,204,21,0.4)' : 'none'
+                      }} className={`w-3 h-3 rounded-full border-2 border-yellow-400 ${isVisible ? 'bg-yellow-400' : 'bg-[#161616]'}`} />
                     </div>
-                    <div style={{ opacity: isVisible ? 1 : 0, transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(22px) scale(0.95)', transition: 'opacity 0.6s ease, transform 0.6s ease', transitionDelay: `${index * 70 + 100}ms` }} className="timeline-card bg-[#1e1e1e] border border-gray-800 rounded-xl p-2.5 w-full">
-                      <h3 className="text-white font-bold text-xs leading-tight">{item.title}</h3>
-                      <p className="text-gray-500 text-xs mt-1 leading-relaxed line-clamp-3">{item.desc}</p>
+                    <div
+                      onClick={() => handleTimelineClick(index)}
+                      style={{
+                        opacity: isVisible ? 1 : 0,
+                        transform: isVisible ? (isActive ? 'translateY(0) scale(1.05)' : 'translateY(0) scale(1)') : 'translateY(22px) scale(0.95)',
+                        transition: 'opacity 0.6s ease, transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease, background-color 0.4s ease',
+                        transitionDelay: isActive ? '0ms' : `${index * 70 + 100}ms`,
+                        boxShadow: isActive ? '0 8px 32px rgba(250,204,21,0.25)' : 'none',
+                        borderColor: isActive ? 'rgba(250,204,21,0.7)' : undefined,
+                        backgroundColor: isActive ? '#1a1200' : '#ffffff',
+                        zIndex: isActive ? 10 : undefined,
+                      }}
+                      className={`timeline-card ${isActive ? 'timeline-card-active' : 'timeline-card-inactive'} bg-[#1e1e1e] border border-gray-800 rounded-xl p-2.5 w-full cursor-pointer relative`}
+                    >
+                      <h3 style={{ color: isActive ? '#ffffff' : '#333333' }} className="font-bold text-xs leading-tight transition-colors duration-300">{item.title}</h3>
+                      <p style={{ color: isActive ? '#cccccc' : '#666666' }} className={`text-xs mt-1 leading-relaxed transition-colors duration-300 ${isActive ? '' : 'line-clamp-2'}`}>{item.desc}</p>
+                      <div
+                        className="flex items-center gap-1 mt-2 w-fit"
+                        onClick={e => { e.stopPropagation(); setSelectedItem(item) }}
+                      >
+                        <Camera size={9} style={{ color: isActive ? '#F5C422' : '#92600a' }} className="transition-colors duration-300" />
+                        <span style={{ color: isActive ? '#F5C422' : '#92600a' }} className="text-[9px] transition-colors duration-300 underline underline-offset-2">Ver fotos</span>
+                      </div>
                     </div>
                   </div>
                 )
@@ -327,31 +397,21 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Contenido + imagen */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <p className="text-gray-400 text-base leading-relaxed mb-5 text-justify">
-                Fundada en 2007 por José Luis Gorbeña en Monte Caseros, Corrientes, El Casereño nació de una visión simple: que la fruta fina del litoral merecía llegar fresca a destino. Empezamos transportando arándanos con 3 camiones. Hoy somos más de 55 unidades y seguimos siendo la misma familia.
-              </p>
-              <p className="text-gray-400 text-base leading-relaxed mb-8 text-justify">
-                Operamos con cargas diarias en modalidad punto a punto o reparticiones, cubriendo todo el territorio argentino y países limítrofes.
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {features.map((feature, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <CheckCircle className="w-4 h-4 text-yellow-400 flex-shrink-0" />
-                    <span className="text-gray-300 text-sm">{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="relative admin-editable">
-              <div className="absolute -inset-3 bg-yellow-400 rounded-3xl opacity-10 blur-sm"></div>
-              <img src="/images/casereno-flota.png" alt="Flota El Casereño" className="relative rounded-2xl w-full h-[440px] object-cover shadow-2xl" />
-              <div className="absolute -bottom-5 -right-5 bg-yellow-400 text-black rounded-2xl p-5 shadow-2xl">
-                <span className="text-4xl font-black block leading-none">19+</span>
-                <span className="text-xs font-bold uppercase tracking-wider mt-1 block">años de experiencia</span>
-              </div>
+          {/* Contenido */}
+          <div className="w-full">
+            <p className="text-gray-400 text-base leading-relaxed mb-5 text-justify">
+              Fundada en 2007 por José Luis Gorbeña en Monte Caseros, Corrientes, El Casereño nació de una visión simple: que la fruta fina del litoral merecía llegar fresca a destino. Empezamos transportando arándanos con 3 camiones. Hoy somos más de 55 unidades y seguimos siendo la misma familia.
+            </p>
+            <p className="text-gray-400 text-base leading-relaxed mb-8 text-justify">
+              Operamos con cargas diarias en modalidad punto a punto o reparticiones, cubriendo todo el territorio argentino y países limítrofes.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {features.map((feature, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  <CheckCircle className="w-4 h-4 text-yellow-400 flex-shrink-0" />
+                  <span className="text-gray-300 text-sm">{feature}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -367,7 +427,7 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {diferencial.map((card, i) => (
-              <div key={i} className="group bg-[#161616] border border-white/6 rounded-xl p-6 hover:border-yellow-400/40 hover:-translate-y-2 hover:shadow-[0_8px_30px_rgba(250,204,21,0.08)] transition-all duration-300 cursor-default">
+              <div key={i} className="group bg-[#161616] border border-white/6 rounded-xl p-6 hover:border-yellow-400/40 hover:-translate-y-3 hover:scale-105 hover:shadow-[0_16px_40px_rgba(250,204,21,0.45)] transition-all duration-300 cursor-default">
                 <div className="w-11 h-11 bg-yellow-400/10 rounded-lg flex items-center justify-center mb-4 text-yellow-400 transition-all duration-300 group-hover:bg-yellow-400/20 group-hover:scale-110 group-hover:rotate-6">
                   {card.icon}
                 </div>
@@ -395,7 +455,7 @@ export default function Home() {
               { num: '3', label: 'Sedes operativas' },
               { num: '5', label: 'Países de cobertura' },
             ].map((n, i) => (
-              <div key={i} className="group bg-[#1a1a1a] border border-[#2a2a2a] rounded-[12px] p-5 text-center hover:border-yellow-400/40 hover:-translate-y-1 hover:shadow-[0_6px_24px_rgba(250,204,21,0.07)] transition-all duration-300 cursor-default">
+              <div key={i} className="group bg-[#1a1a1a] border border-[#2a2a2a] rounded-[12px] p-5 text-center hover:border-yellow-400/40 hover:-translate-y-3 hover:scale-105 hover:shadow-[0_16px_40px_rgba(250,204,21,0.45)] transition-all duration-300 cursor-default">
                 <span className="text-[#F5C422] text-4xl font-black block leading-none transition-transform duration-300 group-hover:scale-110">{n.num}</span>
                 <span className="text-[#888] text-xs mt-2 block">{n.label}</span>
               </div>
@@ -425,7 +485,7 @@ export default function Home() {
       </section>
 
       {/* NUESTRAS SEDES */}
-      <section id="sedes" className="pb-24 bg-[#161616]">
+      <section id="sedes" className="py-24 bg-[#161616]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
           <div className="mb-10">
@@ -553,9 +613,9 @@ export default function Home() {
             {/* Card contacto */}
             <div className="bg-[#1e1e1e] border border-white/7 rounded-2xl p-8 hover:border-yellow-400/20 hover:shadow-[0_8px_40px_rgba(250,204,21,0.06)] transition-all duration-300">
               <div className="w-[52px] h-[52px] rounded-full bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center mb-4 overflow-hidden">
-                <img src="/images/logo.png" alt="El Casereño" className="w-10 h-10 object-contain" />
+                <img src="/images/logo.png" alt="El Casereño" className="w-14 h-14 object-contain" />
               </div>
-              <h3 className="text-white font-semibold text-lg mb-0.5">Transporte El Casereño</h3>
+              <h3 className="text-white font-semibold text-lg mb-0.5">Transporte &ldquo;El Casereño S.A.&rdquo;</h3>
               <p className="text-gray-500 text-sm mb-6">Transporte Nacional e Internacional</p>
               <div className="h-px bg-white/7 mb-6"></div>
 
@@ -611,7 +671,7 @@ export default function Home() {
               { role: 'Operadores logísticos', desc: 'Seguimiento de cargas, comunicación con clientes y coordinación con conductores.' },
               { role: 'Otras posiciones', desc: 'Si no encontrás tu perfil pero querés ser parte del equipo, igualmente escribinos.' },
             ].map((item, i) => (
-              <div key={i} className="group bg-[#161616] border border-white/6 rounded-xl p-5 hover:border-yellow-400/40 hover:-translate-y-1 hover:shadow-[0_6px_24px_rgba(250,204,21,0.07)] transition-all duration-300 cursor-default">
+              <div key={i} className="group bg-[#161616] border border-white/6 rounded-xl p-5 hover:border-yellow-400/40 hover:-translate-y-3 hover:scale-105 hover:shadow-[0_16px_40px_rgba(250,204,21,0.45)] transition-all duration-300 cursor-default">
                 <div className="w-2 h-2 rounded-full bg-yellow-400 mb-3 transition-transform duration-300 group-hover:scale-150" />
                 <h3 className="text-white font-semibold text-sm mb-2">{item.role}</h3>
                 <p className="text-gray-500 text-xs leading-relaxed">{item.desc}</p>
@@ -639,14 +699,50 @@ export default function Home() {
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-[#0d0d0d] border-t border-white/6 py-8 px-8">
-        <div className="max-w-7xl mx-auto flex flex-col items-center gap-4 text-center">
-          <img src="/images/logo_footer.jpeg" alt="Logo footer El Casereño" className="h-8 w-auto" />
-          <img src="/images/hecho-en-corrientes.png.jpeg" alt="Hecho en Corrientes" className="h-16 w-auto opacity-90" />
-          <span className="text-gray-600 text-xs">© {new Date().getFullYear()} Transporte El Casereño S.A. Todos los derechos reservados · Diseño y desarrollo por <a href="https://www.codigo20.com.ar" target="_blank" rel="noopener noreferrer" className="hover:text-yellow-400 transition-colors">Código20</a></span>
-          <AdminBar />
+      <footer className="bg-[#2a1f0e] border-t border-[#c8971a]/20 py-6 px-8">
+        <div className="max-w-7xl mx-auto flex flex-col items-center gap-4">
+          <div className="flex items-center gap-6">
+            <img src="/images/logos/grupojlgBlanco.png" alt="Grupo JLG" className="h-8 w-auto" />
+            <img src="/images/logos/yacareBlanco.png" alt="Yacaré" className="h-12 w-auto" />
+          </div>
+          <div className="flex items-center gap-3">
+            <AdminBar />
+            <span className="text-gray-400 text-xs whitespace-nowrap">© {new Date().getFullYear()} Transporte El Casereño S.A. Todos los derechos reservados · Diseño y desarrollo por <a href="https://www.codigo20.com.ar" target="_blank" rel="noopener noreferrer" className="hover:text-yellow-400 transition-colors">Código20</a></span>
+          </div>
         </div>
       </footer>
+
+      {/* MODAL TIMELINE */}
+      {selectedItem && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedItem(null)}>
+          <div className="bg-[#1a1a1a] border border-yellow-400/20 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-5">
+                <div>
+                  <span className="text-yellow-400 font-black text-3xl block leading-none">{selectedItem.year}</span>
+                  <h3 className="text-white font-bold text-xl mt-1">{selectedItem.title}</h3>
+                </div>
+                <button onClick={() => setSelectedItem(null)} className="text-gray-400 hover:text-white transition-colors p-1">
+                  <X size={22} />
+                </button>
+              </div>
+              <p className="text-gray-400 text-sm leading-relaxed mb-6">{selectedItem.desc}</p>
+              {selectedItem.photos && selectedItem.photos.length > 0 ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {selectedItem.photos.map((photo, i) => (
+                    <img key={i} src={photo} alt={`${selectedItem.title} - foto ${i + 1}`} className="rounded-xl w-full h-44 object-cover" />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8 border border-dashed border-gray-700 rounded-xl gap-2">
+                  <Camera className="text-gray-600" size={28} />
+                  <p className="text-gray-500 text-sm">Fotos próximamente</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* WHATSAPP FLOTANTE */}
       <a href="https://wa.me/5403775408417" target="_blank" rel="noopener noreferrer"
