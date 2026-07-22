@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Menu, X, CheckCircle, Thermometer, Globe, Shield, Clock, Users, Star, Sun, Moon, Camera } from 'lucide-react'
+import { Menu, X, CheckCircle, Thermometer, Globe, Shield, Clock, Users, Star, Sun, Moon, Camera, MapPin } from 'lucide-react'
 import MapArgentina from './components/MapArgentina'
 import AdminBar from './components/AdminBar'
 
@@ -43,7 +43,7 @@ export default function Home() {
   }, [visibleItems])
 
   useEffect(() => {
-    const targets = { units: 55, years: 19, offices: 3, countries: 4 }
+    const targets = { units: 55, years: 19, offices: 3, countries: 6 }
     let animTimer: ReturnType<typeof setInterval>
     let loopTimer: ReturnType<typeof setInterval>
 
@@ -83,7 +83,7 @@ export default function Home() {
     if (autoTimelineRef.current) clearInterval(autoTimelineRef.current)
     autoTimelineRef.current = setInterval(() => {
       setActiveTimelineIndex(prev => (prev + 1) % timeline.length)
-    }, 2800)
+    }, 4500)
   }
 
   useEffect(() => {
@@ -155,13 +155,13 @@ export default function Home() {
   const diferencial = [
     {
       icon: <Thermometer className="w-5 h-5" />,
-      title: 'Flota 100% térmica',
+      title: 'Flotas refrigeradas',
       desc: '+55 unidades con equipos de frío Carrier de nueva generación. Temperatura controlada garantizada en cada viaje.',
     },
     {
       icon: <Globe className="w-5 h-5" />,
-      title: 'Cobertura amplia',
-      desc: 'Argentina, Brasil, Uruguay, Chile y Paraguay. Foco especial en centro y norte del país con cargas diarias.',
+      title: 'Amplia cobertura',
+      desc: 'Argentina, Brasil, Uruguay, Chile, Paraguay y Bolivia. Foco especial en centro y norte del país con cargas diarias.',
     },
     {
       icon: <Shield className="w-5 h-5" />,
@@ -198,15 +198,15 @@ export default function Home() {
       <nav className="bg-black/92 backdrop-blur-md shadow-lg sticky top-0 z-50 border-b border-yellow-400/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-[68px]">
-            <div className="flex items-center">
+            <a href="#" className="flex items-center">
               <img
                 src={theme === 'light' ? '/images/logos/casereno.png' : '/images/logos/caserenoBlancoCorriente.png'}
                 alt="El Casereño Logo"
                 className="h-10 w-auto"
               />
-            </div>
+            </a>
             <div className="hidden md:flex items-baseline gap-8">
-              {[['#nosotros', 'Nosotros'], ['#diferencial', 'Servicios'], ['#flota', 'Flota'], ['#sedes', 'Sedes'], ['#clientes', 'Clientes'], ['/noticias', 'Últimas noticias'], ['#trabajá', 'Trabajá con nosotros']].map(([href, label]) => (
+              {[['#nosotros', 'Nosotros'], ['#diferencial', 'Servicios'], ['#flota', 'Flota'], ['#sedes', 'Sedes'], ['#clientes', 'Clientes'], ['/noticias', 'Novedades'], ['#trabajá', 'Trabajá con nosotros']].map(([href, label]) => (
                 <a key={href} href={href} className="text-gray-300 hover:text-yellow-400 text-sm font-medium transition-colors duration-200">{label}</a>
               ))}
             </div>
@@ -228,7 +228,7 @@ export default function Home() {
         </div>
         {isMenuOpen && (
           <div className="md:hidden px-2 pt-2 pb-3 space-y-1 bg-black border-t border-gray-800">
-            {[['#nosotros', 'Nosotros'], ['#diferencial', 'Servicios'], ['#flota', 'Flota'], ['#sedes', 'Sedes'], ['#clientes', 'Clientes'], ['/noticias', 'Últimas noticias'], ['#trabajá', 'Trabajá con nosotros']].map(([href, label]) => (
+            {[['#nosotros', 'Nosotros'], ['#diferencial', 'Servicios'], ['#flota', 'Flota'], ['#sedes', 'Sedes'], ['#clientes', 'Clientes'], ['/noticias', 'Novedades'], ['#trabajá', 'Trabajá con nosotros']].map(([href, label]) => (
               <a key={href} href={href} onClick={() => setIsMenuOpen(false)} className="text-white hover:text-yellow-400 block px-3 py-2 rounded-md text-base font-medium">{label}</a>
             ))}
           </div>
@@ -259,15 +259,15 @@ export default function Home() {
         <div className="relative flex-1 flex items-center">
           <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 w-full py-24">
             <div className="flex flex-col items-center text-center max-w-2xl mx-auto">
-              <div className="inline-flex items-center gap-2 bg-yellow-400/12 border border-yellow-400/30 rounded-full px-4 py-1.5 mb-8">
-                <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse"></div>
-                <span className="text-yellow-400 text-xs font-medium tracking-wide">Monte Caseros, Corrientes · Argentina</span>
-              </div>
               <img
                 src="/images/logos/caserenoBlanco.png"
                 alt="Transporte El Casereño"
                 className="mb-6 w-[95vw] max-w-[1200px] h-auto drop-shadow-2xl"
               />
+              <div className="inline-flex items-center gap-2 bg-yellow-400/12 border border-yellow-400/30 rounded-full px-4 py-1.5 mb-8">
+                <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse"></div>
+                <span className="text-yellow-400 text-xs font-medium tracking-wide">Monte Caseros, Corrientes · Argentina</span>
+              </div>
               <p className="font-balloon text-gray-300 text-base md:text-lg mb-10 leading-relaxed">
                 Transporte Nacional e Internacional.<br />
                 Conectando destinos con confianza y responsabilidad.
@@ -451,9 +451,9 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {[
               { num: '+55', label: 'Unidades totales' },
-              { num: '95%', label: 'Unidades térmicas' },
+              { num: '95%', label: 'Flotas refrigeradas' },
               { num: '3', label: 'Sedes operativas' },
-              { num: '5', label: 'Países de cobertura' },
+              { num: '6', label: 'Países de cobertura' },
             ].map((n, i) => (
               <div key={i} className="group bg-[#1a1a1a] border border-[#2a2a2a] rounded-[12px] p-5 text-center hover:border-yellow-400/40 hover:-translate-y-3 hover:scale-105 hover:shadow-[0_16px_40px_rgba(250,204,21,0.45)] transition-all duration-300 cursor-default">
                 <span className="text-[#F5C422] text-4xl font-black block leading-none transition-transform duration-300 group-hover:scale-110">{n.num}</span>
@@ -498,7 +498,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6">
 
             {/* Mapa */}
-            <div className="bg-[#07101a] rounded-3xl overflow-hidden border border-cyan-500/10 h-[520px] lg:h-full">
+            <div className="bg-[#07101a] rounded-3xl overflow-hidden border border-cyan-500/10 h-[520px] lg:h-[700px] lg:sticky lg:top-24 lg:self-start">
               <MapArgentina />
             </div>
 
@@ -507,26 +507,42 @@ export default function Home() {
 
               {/* Sedes */}
               {[
-                { title: 'SEDE CENTRAL', desc: 'Monte Caseros, Corrientes', labelColor: '#F5C422' },
-                { title: 'SUCURSAL RIACHUELO', desc: 'Corrientes', labelColor: '#4A9EBF' },
-                { title: 'SUCURSAL EZEIZA', desc: 'Buenos Aires', labelColor: '#4ABF7A' },
+                { title: 'SEDE CENTRAL', desc: 'Monte Caseros, Corrientes', labelColor: '#F5C422', lat: -30.2597, lng: -57.6434 },
+                { title: 'SUCURSAL RIACHUELO', desc: 'Corrientes', labelColor: '#4A9EBF', lat: -27.36, lng: -58.7847 },
+                { title: 'SUCURSAL EZEIZA', desc: 'Buenos Aires', labelColor: '#4ABF7A', lat: -34.8272, lng: -58.5347 },
               ].map((s, i) => (
                 <div key={i} className="rounded-[12px] border border-[#2a2a2a] p-5 bg-[#1a1a1a] hover:-translate-y-1 hover:shadow-[0_6px_24px_rgba(0,0,0,0.3)] transition-all duration-300 cursor-default" style={{ '--hover-border': s.labelColor } as React.CSSProperties}>
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-semibold uppercase tracking-[1px]" style={{ color: s.labelColor, border: `1px solid ${s.labelColor}33` }}>{s.title}</div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-semibold uppercase tracking-[1px]" style={{ color: s.labelColor, border: `1px solid ${s.labelColor}33` }}>
+                    <MapPin size={13} />
+                    {s.title}
+                  </div>
+                  <div className="h-px bg-[#3a3a3a] mb-3"></div>
                   <p className="text-white font-semibold">{s.desc}</p>
-                  <p className="text-[#888] text-sm mt-1">Base operativa y logística para transporte nacional.</p>
+                  <p className="text-[#888] text-sm mt-1 mb-4">Base operativa y logística para transporte nacional.</p>
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full bg-white/6 border border-white/10 text-white text-xs font-medium px-4 py-2 rounded-full hover:bg-white/10 transition-colors duration-200"
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = `${s.labelColor}66`; e.currentTarget.style.color = s.labelColor }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.color = '' }}
+                  >
+                    ¿Cómo llegar?
+                    <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" /><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" /><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" /><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" /></svg>
+                  </a>
                 </div>
               ))}
 
               {/* Cobertura internacional */}
               <div className="bg-[#07101a] border border-cyan-500/10 rounded-3xl p-5">
                 <p className="text-cyan-400 font-bold text-xs uppercase tracking-widest mb-4">Cobertura internacional</p>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-5 gap-2">
                   {[
                     { name: 'Brasil', svg: 'br' },
                     { name: 'Uruguay', svg: 'uy' },
                     { name: 'Chile', svg: 'cl' },
                     { name: 'Paraguay', svg: 'py' },
+                    { name: 'Bolivia', svg: 'bo' },
                   ].map(p => (
                     <div key={p.name} className="group flex flex-col items-center gap-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-[12px] px-2 py-4 hover:border-cyan-400/40 hover:-translate-y-1 hover:shadow-[0_4px_16px_rgba(0,0,0,0.3)] transition-all duration-300 cursor-default">
                       <img
@@ -612,10 +628,11 @@ export default function Home() {
 
             {/* Card contacto */}
             <div className="bg-[#1e1e1e] border border-white/7 rounded-2xl p-8 hover:border-yellow-400/20 hover:shadow-[0_8px_40px_rgba(250,204,21,0.06)] transition-all duration-300">
-              <div className="w-[52px] h-[52px] rounded-full bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center mb-4 overflow-hidden">
-                <img src="/images/logo.png" alt="El Casereño" className="w-14 h-14 object-contain" />
-              </div>
-              <h3 className="text-white font-semibold text-lg mb-0.5">Transporte &ldquo;El Casereño S.A.&rdquo;</h3>
+              <img
+                src={theme === 'light' ? '/images/logos/casereno.png' : '/images/logos/caserenoBlancoCorriente.png'}
+                alt="El Casereño"
+                className="h-10 w-auto object-contain mb-4 mx-auto"
+              />
               <p className="text-gray-500 text-sm mb-6">Transporte Nacional e Internacional</p>
               <div className="h-px bg-white/7 mb-6"></div>
 
@@ -638,7 +655,9 @@ export default function Home() {
                 Escribinos por WhatsApp
               </a>
 
-              <div className="flex items-center justify-center gap-5 pt-4 border-t border-white/7 mt-2">
+              <div className="pt-4 border-t border-white/7 mt-2">
+                <p className="text-center text-gray-500 text-xs font-semibold tracking-widest mb-3">SEGUINOS</p>
+                <div className="flex items-center justify-center gap-5">
                 <a href="https://www.facebook.com/share/1H3te6ykUX/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-gray-500 hover:text-yellow-400 transition-colors duration-200 text-sm">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
                   Facebook
@@ -647,6 +666,7 @@ export default function Home() {
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" /></svg>
                   Instagram
                 </a>
+                </div>
               </div>
             </div>
           </div>
@@ -667,7 +687,7 @@ export default function Home() {
               { role: 'Choferes con registro', desc: 'Habilitación categoría E. Experiencia en larga distancia y/o cargas especiales.' },
               { role: 'Mecánicos de flota', desc: 'Conocimiento en motores a diesel, sistemas de frío Carrier y mantenimiento preventivo.' },
               { role: 'Administrativos', desc: 'Gestión de documentación, logística y coordinación de viajes nacionales e internacionales.' },
-              { role: 'Despachantes de carga', desc: 'Conocimiento en documentación aduanera para operaciones con Brasil, Uruguay, Chile y Paraguay.' },
+              { role: 'Despachantes de carga', desc: 'Conocimiento en documentación aduanera para operaciones con Brasil, Uruguay, Chile, Paraguay y Bolivia.' },
               { role: 'Operadores logísticos', desc: 'Seguimiento de cargas, comunicación con clientes y coordinación con conductores.' },
               { role: 'Otras posiciones', desc: 'Si no encontrás tu perfil pero querés ser parte del equipo, igualmente escribinos.' },
             ].map((item, i) => (
@@ -695,13 +715,35 @@ export default function Home() {
               </a>
             </div>
           </div>
+
+          <div className="mt-8 text-center">
+            <p className="text-gray-500 text-xs font-semibold tracking-widest mb-4">SEGUINOS</p>
+            <div className="flex items-center justify-center gap-4">
+              <a href="https://www.facebook.com/share/1H3te6ykUX/" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2.5 bg-[#1877F2] text-white text-sm font-bold px-6 py-3.5 rounded-xl shadow-[0_4px_20px_rgba(24,119,242,0.25)] hover:shadow-[0_8px_28px_rgba(24,119,242,0.45)] hover:-translate-y-1 hover:scale-105 transition-all duration-300">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="transition-transform duration-300 group-hover:scale-110"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
+                Facebook
+              </a>
+              <a href="https://www.instagram.com/transporte.casereno.sa?utm_source=qr&igsh=MXNtZGlkNjZjZHdsZg==" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2.5 text-white text-sm font-bold px-6 py-3.5 rounded-xl shadow-[0_4px_20px_rgba(217,70,166,0.25)] hover:shadow-[0_8px_28px_rgba(217,70,166,0.45)] hover:-translate-y-1 hover:scale-105 transition-all duration-300" style={{ background: 'linear-gradient(45deg, #f9ce34, #ee2a7b, #6228d7)' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 group-hover:scale-110"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" /></svg>
+                Instagram
+              </a>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* FOOTER */}
       <footer className="bg-[#2a1f0e] border-t border-[#c8971a]/20 py-6 px-8">
         <div className="max-w-7xl mx-auto flex flex-col items-center gap-4">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center flex-wrap justify-center gap-6">
+            <div className="flex items-center gap-4 border-r border-white/10 pr-6">
+              <a href="https://www.facebook.com/share/1H3te6ykUX/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-yellow-400 transition-colors duration-200">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
+              </a>
+              <a href="https://www.instagram.com/transporte.casereno.sa?utm_source=qr&igsh=MXNtZGlkNjZjZHdsZg==" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-yellow-400 transition-colors duration-200">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" /></svg>
+              </a>
+            </div>
             <img src="/images/logos/grupojlgBlanco.png" alt="Grupo JLG" className="h-8 w-auto" />
             <img src="/images/logos/yacareBlanco.png" alt="Yacaré" className="h-12 w-auto" />
           </div>

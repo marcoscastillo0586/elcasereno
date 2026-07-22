@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Menu, X, ArrowLeft, Calendar, Tag } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Menu, X, ArrowLeft, Calendar, Tag, Sun, Moon } from 'lucide-react'
 import Link from 'next/link'
 
 const noticias = [
@@ -43,16 +43,31 @@ function formatFecha(fecha: string) {
 
 export default function Noticias() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [theme, setTheme] = useState<'dark' | 'light'>('light')
+
+  useEffect(() => {
+    const saved = localStorage.getItem('casereno-theme') as 'dark' | 'light' | null
+    if (saved) setTheme(saved)
+  }, [])
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('casereno-theme', theme)
+  }, [theme])
 
   return (
-    <div className="min-h-screen bg-[#f5f5f5]">
+    <div className="min-h-screen bg-[#0d0d0d]">
 
       {/* NAV */}
       <nav className="bg-black/92 backdrop-blur-md shadow-lg sticky top-0 z-50 border-b border-yellow-400/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-[68px]">
             <div className="flex items-center gap-4">
-              <img src="/images/logo.png" alt="El Casereño Logo" className="h-9 w-auto scale-[2.05]" />
+              <img
+                src={theme === 'light' ? '/images/logos/casereno.png' : '/images/logos/caserenoBlancoCorriente.png'}
+                alt="El Casereño Logo"
+                className="h-10 w-auto"
+              />
             </div>
             <div className="hidden md:flex items-baseline gap-8">
               <Link href="/" className="text-gray-300 hover:text-yellow-400 text-sm font-medium transition-colors duration-200 flex items-center gap-1.5">
@@ -64,11 +79,17 @@ export default function Noticias() {
               <Link href="/#contacto" className="text-gray-300 hover:text-yellow-400 text-sm font-medium transition-colors duration-200">Contacto</Link>
             </div>
             <div className="hidden md:flex items-center gap-3">
+              <button onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')} className="text-gray-400 hover:text-yellow-400 transition-colors duration-200 p-1.5 rounded-md" title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}>
+                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
               <Link href="/#contacto" className="bg-yellow-400 text-black text-sm font-medium px-5 py-2 rounded-md hover:bg-yellow-300 transition-colors duration-200">
                 Contactanos
               </Link>
             </div>
-            <div className="md:hidden">
+            <div className="md:hidden flex items-center gap-2">
+              <button onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')} className="text-gray-400 hover:text-yellow-400 transition-colors duration-200 p-1.5">
+                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
               <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-white hover:text-yellow-400 focus:outline-none">
                 {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
@@ -88,10 +109,9 @@ export default function Noticias() {
       </nav>
 
       {/* HEADER */}
-      <div className="bg-white border-b border-[#e8e8e8] py-12 px-4">
+      <div className="bg-[#161616] border-b border-[#2a2a2a] py-12 px-4">
         <div className="max-w-5xl mx-auto">
-          <p className="text-xs font-semibold uppercase tracking-[2px] text-yellow-600 mb-2">Novedades</p>
-          <h1 className="text-4xl md:text-5xl font-black text-[#111] tracking-tight leading-tight">Últimas noticias</h1>
+          <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-tight">Novedades</h1>
           <p className="text-[#666] text-base mt-3 max-w-xl">Todo lo nuevo que pasa en El Casereño: nuevas unidades, sedes, actividades y más.</p>
         </div>
       </div>
@@ -100,7 +120,7 @@ export default function Noticias() {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {noticias.map(noticia => (
-            <article key={noticia.id} className="bg-white rounded-2xl border border-[#e8e8e8] overflow-hidden hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] hover:-translate-y-1 transition-all duration-300">
+            <article key={noticia.id} className="bg-[#1e1e1e] rounded-2xl border border-white/7 overflow-hidden hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] hover:-translate-y-1 transition-all duration-300">
               <div className="h-48 overflow-hidden">
                 <img
                   src={noticia.imagen}
@@ -118,7 +138,7 @@ export default function Noticias() {
                     {formatFecha(noticia.fecha)}
                   </span>
                 </div>
-                <h2 className="text-[#111] font-bold text-base leading-snug mb-2">{noticia.titulo}</h2>
+                <h2 className="text-white font-bold text-base leading-snug mb-2">{noticia.titulo}</h2>
                 <p className="text-[#666] text-sm leading-relaxed">{noticia.resumen}</p>
               </div>
             </article>

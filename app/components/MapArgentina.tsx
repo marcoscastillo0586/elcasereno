@@ -4,23 +4,8 @@ import { useEffect, useRef } from 'react'
 
 const PROVINCES_URL = 'https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/argentina-provinces.geojson'
 
-// Colores oscuros y elegantes por país (world GeoJSON)
-const COUNTRY_STYLES: Record<string, { fill: string; border: string; opacity: number }> = {
-  BRA: { fill: '#105030', border: '#10b981', opacity: 0.65 },
-  URY: { fill: '#1e3a8a', border: '#3b82f6', opacity: 0.65 },
-  CHL: { fill: '#7f1d1d', border: '#ef4444', opacity: 0.65 },
-  PRY: { fill: '#7c2d12', border: '#f97316', opacity: 0.65 },
-  BOL: { fill: '#27272a', border: '#3f3f46', opacity: 0.3 },
-}
-
-// Provincias con mayor presencia de El Casereño
-const PROVINCES_PRIMARY = [
-  'Corrientes', 'Entre Ríos', 'Misiones',
-]
-const PROVINCES_SECONDARY = [
-  'Buenos Aires', 'Santa Fe', 'Chaco', 'Formosa',
-  'Tucumán', 'Salta', 'Córdoba', 'Ciudad Autónoma de Buenos Aires',
-]
+// Estilo neutro y uniforme para los países limítrofes (sin colores distintivos por país)
+const NEIGHBOR_COUNTRY_STYLE = { fill: '#334155', border: '#64748b', opacity: 0.5 }
 
 const SEDES = [
   { label: 'Sede Central', city: 'Monte Caseros, Ctes.', lat: -30.2597, lng: -57.6434, main: true  },
@@ -28,12 +13,38 @@ const SEDES = [
   { label: 'Sucursal',     city: 'Ezeiza, Bs.As.',       lat: -34.8272, lng: -58.5347, main: false },
 ]
 
-// Países limítrofes con banderas
+// Países limítrofes con banderas (hub 0 = Sede Central, 2 = Sucursal Ezeiza)
 const COUNTRIES = [
-  { name: 'Brasil', lat: -15.0, lng: -53.0, code: 'br' },
-  { name: 'Uruguay', lat: -32.5, lng: -55.5, code: 'uy' },
-  { name: 'Chile', lat: -35.0, lng: -71.0, code: 'cl' },
-  { name: 'Paraguay', lat: -23.0, lng: -58.0, code: 'py' },
+  { name: 'Brasil', lat: -15.0, lng: -53.0, code: 'br', hub: 0 },
+  { name: 'Uruguay', lat: -32.5, lng: -55.5, code: 'uy', hub: 2 },
+  { name: 'Chile', lat: -35.0, lng: -71.0, code: 'cl', hub: 2 },
+  { name: 'Paraguay', lat: -23.0, lng: -58.0, code: 'py', hub: 0 },
+  { name: 'Bolivia', lat: -17.0, lng: -64.5, code: 'bo', hub: 0 },
+]
+
+// Provincias destino con conexión desde alguna sede (excluye Santa Cruz y Chubut)
+// hub 0 = Sede Central / Monte Caseros, 1 = Sucursal Riachuelo, 2 = Sucursal Ezeiza
+const DESTINATIONS = [
+  { name: 'Jujuy', lat: -24.1858, lng: -65.2995, hub: 0 },
+  { name: 'Salta', lat: -24.7859, lng: -65.4117, hub: 0 },
+  { name: 'Formosa', lat: -26.1775, lng: -58.1781, hub: 0 },
+  { name: 'Tucumán', lat: -26.8241, lng: -65.2226, hub: 0 },
+  { name: 'Catamarca', lat: -28.4696, lng: -65.7852, hub: 0 },
+  { name: 'Santiago del Estero', lat: -27.7834, lng: -64.2642, hub: 0 },
+  { name: 'Chaco', lat: -27.4514, lng: -58.9867, hub: 0 },
+  { name: 'Corrientes', lat: -27.4692, lng: -58.8306, hub: 0 },
+  { name: 'Misiones', lat: -27.3671, lng: -55.8961, hub: 0 },
+  { name: 'Santa Fe', lat: -31.6333, lng: -60.7000, hub: 0 },
+  { name: 'Entre Ríos', lat: -31.7333, lng: -60.5297, hub: 0 },
+  { name: 'La Rioja', lat: -29.4131, lng: -66.8558, hub: 2 },
+  { name: 'San Juan', lat: -31.5375, lng: -68.5364, hub: 2 },
+  { name: 'San Luis', lat: -33.3017, lng: -66.3378, hub: 2 },
+  { name: 'Córdoba', lat: -31.4201, lng: -64.1888, hub: 2 },
+  { name: 'Mendoza', lat: -32.8895, lng: -68.8458, hub: 2 },
+  { name: 'La Pampa', lat: -36.6167, lng: -64.2833, hub: 2 },
+  { name: 'Neuquén', lat: -38.9516, lng: -68.0591, hub: 2 },
+  { name: 'Río Negro', lat: -40.8135, lng: -62.9967, hub: 2 },
+  { name: 'Ciudad Autónoma de Buenos Aires', lat: -34.6037, lng: -58.3816, hub: 2 },
 ]
 
 export default function MapArgentina() {
@@ -68,7 +79,10 @@ export default function MapArgentina() {
       })
       mapRef.current = map
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      map.createPane('routesPane')
+      map.getPane('routesPane')!.style.zIndex = '450'
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
         maxZoom: 10,
         subdomains: 'abcd',
       }).addTo(map)
@@ -86,16 +100,12 @@ export default function MapArgentina() {
                 return { fillOpacity: 0, color: 'transparent', weight: 0, opacity: 0 }
               }
 
-              const style = COUNTRY_STYLES[code]
-              if (!style) {
-                return { fillOpacity: 0.15, color: '#333333', weight: 1, opacity: 0.2 }
-              }
               return {
-                fillColor: style.fill,
-                fillOpacity: style.opacity,
-                color: style.border,
-                weight: 1.5,
-                opacity: 0.7,
+                fillColor: NEIGHBOR_COUNTRY_STYLE.fill,
+                fillOpacity: NEIGHBOR_COUNTRY_STYLE.opacity,
+                color: NEIGHBOR_COUNTRY_STYLE.border,
+                weight: 1,
+                opacity: 0.6,
               }
             },
           }).addTo(map)
@@ -107,39 +117,14 @@ export default function MapArgentina() {
         .then(r => r.json())
         .then(data => {
           L.geoJSON(data, {
-            style: (feature: any) => {
-              const name = feature.properties.nombre || feature.properties.provincia || feature.properties.iso_nombre || '';
-              const isPrimary = PROVINCES_PRIMARY.some(p => name.toLowerCase().includes(p.toLowerCase()));
-              const isSecondary = PROVINCES_SECONDARY.some(p => name.toLowerCase().includes(p.toLowerCase()));
-
-              let fillColor = '#1e293b';
-              let fillOpacity = 0.45;
-              let color = '#F5C422';
-              let weight = 1.0;
-              let opacity = 0.3;
-
-              if (isPrimary) {
-                fillColor = '#F5C422';
-                fillOpacity = 0.35;
-                color = '#F5C422';
-                weight = 2.0;
-                opacity = 0.8;
-              } else if (isSecondary) {
-                fillColor = '#F5C422';
-                fillOpacity = 0.15;
-                color = '#F5C422';
-                weight = 1.3;
-                opacity = 0.5;
-              }
-
-              return {
-                fillColor,
-                fillOpacity,
-                color,
-                weight,
-                opacity
-              }
-            },
+            className: 'argentina-glow',
+            style: () => ({
+              fillColor: '#F5C422',
+              fillOpacity: 0.28,
+              color: '#FFE27A',
+              weight: 1.6,
+              opacity: 0.95,
+            }),
           }).addTo(map)
         })
         .catch(() => console.log('GeoJSON load error'))
@@ -166,6 +151,47 @@ export default function MapArgentina() {
           })
       })
 
+      // Curva suave entre dos puntos (bezier cuadrática) para las líneas de conexión
+      const curvePoints = (from: [number, number], to: [number, number], curvature = 0.18, segments = 40) => {
+        const [lat1, lng1] = from
+        const [lat2, lng2] = to
+        const dx = lng2 - lng1
+        const dy = lat2 - lat1
+        const midLat = (lat1 + lat2) / 2 - dx * curvature
+        const midLng = (lng1 + lng2) / 2 + dy * curvature
+        const points: [number, number][] = []
+        for (let i = 0; i <= segments; i++) {
+          const t = i / segments
+          const lat = (1 - t) * (1 - t) * lat1 + 2 * (1 - t) * t * midLat + t * t * lat2
+          const lng = (1 - t) * (1 - t) * lng1 + 2 * (1 - t) * t * midLng + t * t * lng2
+          points.push([lat, lng])
+        }
+        return points
+      }
+
+      // Conexiones desde cada sede a las provincias de cobertura
+      DESTINATIONS.forEach(d => {
+        const hub = SEDES[d.hub]
+        const points = curvePoints([hub.lat, hub.lng], [d.lat, d.lng])
+        L.polyline(points, { color: '#fff7d6', weight: 5, opacity: 0.15, pane: 'routesPane' }).addTo(map)
+        L.polyline(points, { color: '#fff7d6', weight: 1.6, opacity: 0.85, pane: 'routesPane' }).addTo(map)
+
+        L.circleMarker([d.lat, d.lng], {
+          radius: 4,
+          color: '#38bdf8',
+          weight: 2,
+          fillColor: '#0a0f1a',
+          fillOpacity: 1,
+          pane: 'routesPane',
+        })
+          .addTo(map)
+          .bindTooltip(d.name, {
+            className: 'leaflet-tooltip-custom',
+            direction: 'top',
+            offset: [0, -6],
+          })
+      })
+
       // Marcadores de banderas de países
       const flagIcon = (code: string) => L.divIcon({
         className: '',
@@ -175,6 +201,11 @@ export default function MapArgentina() {
       })
 
       COUNTRIES.forEach(country => {
+        const hub = SEDES[country.hub]
+        const points = curvePoints([hub.lat, hub.lng], [country.lat, country.lng])
+        L.polyline(points, { color: '#fff7d6', weight: 5, opacity: 0.15, pane: 'routesPane' }).addTo(map)
+        L.polyline(points, { color: '#fff7d6', weight: 1.6, opacity: 0.85, pane: 'routesPane' }).addTo(map)
+
         L.marker([country.lat, country.lng], { icon: flagIcon(country.code) })
           .addTo(map)
           .bindTooltip(country.name, {
@@ -240,6 +271,9 @@ export default function MapArgentina() {
         }
         .leaflet-control-zoom a:hover {
           background: #272727 !important;
+        }
+        .argentina-glow path {
+          filter: drop-shadow(0 0 6px rgba(245, 196, 34, 0.85));
         }
 
       `}</style>
