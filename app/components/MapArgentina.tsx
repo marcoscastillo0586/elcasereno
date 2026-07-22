@@ -117,8 +117,8 @@ export default function MapArgentina() {
         .then(r => r.json())
         .then(data => {
           L.geoJSON(data, {
-            className: 'argentina-glow',
             style: () => ({
+              className: 'argentina-glow',
               fillColor: '#F5C422',
               fillOpacity: 0.28,
               color: '#FFE27A',
