@@ -13,7 +13,7 @@ export default function AdminBar() {
   useEffect(() => {
     fetch('/api/admin/check').then(r => r.json()).then(j => {
       if (j && j.ok) setIsAdmin(true)
-    }).catch(() => {})
+    }).catch(() => { })
   }, [])
 
   useEffect(() => {
@@ -140,41 +140,37 @@ export default function AdminBar() {
     input.click()
   }
 
-  async function handleChangeHeroVideo() {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = 'video/*'
-    input.onchange = async () => {
-      const file = input.files && input.files[0]
-      if (!file) return
-      const fd = new FormData()
-      fd.append('file', file)
-      fd.append('target', 'hero')
-      const resp = await fetch('/api/admin/upload', { method: 'POST', body: fd })
-      const data = await resp.json()
-      if (data.ok && data.file) {
-        const video = document.querySelector('#hero-video') as HTMLVideoElement | null
-        if (video) {
-          const firstSource = video.querySelector('source')
-          if (firstSource) {
-            firstSource.src = data.file + '?t=' + Date.now()
-            video.load()
-            video.play().catch(() => null)
-          } else {
-            const source = document.createElement('source')
-            source.src = data.file + '?t=' + Date.now()
-            video.appendChild(source)
-            video.load()
-            video.play().catch(() => null)
-          }
-        }
-        setToast('Video hero actualizado')
-        setTimeout(() => setToast(null), 3000)
-      } else {
-        alert('Upload failed: ' + (data.error || 'unknown'))
-      }
+  function getYouTubeId(url: string): string | null {
+    if (!url) return null
+    const clean = url.trim()
+    const match = clean.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|\&v=)([^#\&\?]*).*/)
+    if (match && match[2].length === 11) return match[2]
+    if (clean.length === 11 && !clean.includes('/') && !clean.includes('.')) return clean
+    return null
+  }
+
+  function handleChangeHeroVideo() {
+    const currentId = localStorage.getItem('casereno-hero-youtube-id') || 'iCbLZh_3MyA'
+    const currentUrl = `https://youtube.com/shorts/${currentId}`
+    const inputUrl = prompt('Ingresá la URL del video de YouTube para la portada:', currentUrl)
+    if (!inputUrl) return
+
+    const videoId = getYouTubeId(inputUrl)
+    if (!videoId) {
+      alert('URL de YouTube no válida. Ingresá un enlace válido como: https://youtube.com/shorts/iCbLZh_3MyA')
+      return
     }
-    input.click()
+
+    localStorage.setItem('casereno-hero-youtube-id', videoId)
+    window.dispatchEvent(new CustomEvent('casereno-hero-update', { detail: videoId }))
+
+    const heroIframe = document.querySelector('#hero-video') as HTMLIFrameElement | null
+    if (heroIframe) {
+      heroIframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1`
+    }
+
+    setToast('Video de portada actualizado')
+    setTimeout(() => setToast(null), 3000)
   }
 
   return (

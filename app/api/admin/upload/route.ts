@@ -1,43 +1,32 @@
 import { NextResponse } from 'next/server'
-import formidable from 'formidable'
 import fs from 'fs'
 import path from 'path'
 
 export const runtime = 'nodejs'
 
 export async function POST(req: Request) {
-  const form = formidable({ multiples: false })
-  const publicImages = path.join(process.cwd(), 'public', 'images')
-  const publicVideos = path.join(process.cwd(), 'public', 'videos')
-  if (!fs.existsSync(publicImages)) fs.mkdirSync(publicImages, { recursive: true })
-  if (!fs.existsSync(publicVideos)) fs.mkdirSync(publicVideos, { recursive: true })
-
-  // parse multipart form in a promise
-  const parsed = await new Promise<{ fields: any; files: any }>((resolve, reject) => {
-    form.parse(req as any, (err, fields, files) => {
-      if (err) return reject(err)
-      resolve({ fields, files })
-    })
-  })
-
-  const { fields, files } = parsed
-  const file = files?.file
-  if (!file) {
-    return NextResponse.json({ ok: false, error: 'No file uploaded' }, { status: 400 })
-  }
-
-  const tempPath = file.filepath || file.path || file.file
-  const original = file.originalFilename || file.name || tempPath
-  const ext = path.extname(original) || '.bin'
-  const mime = (file.mimetype || '').toLowerCase()
-
-  const isImage = mime.startsWith('image') || ['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(ext.toLowerCase())
-  const isVideo = mime.startsWith('video') || ['.mp4', '.mov', '.webm', '.ogv'].includes(ext.toLowerCase())
-
   try {
-    const requestedTarget = (fields && fields.target) ? String(fields.target) : undefined
+    const formData = await req.formData()
+    const file = formData.get('file') as File | null
+    const requestedTarget = formData.get('target') ? String(formData.get('target')) : undefined
 
-    const fileSize = Number(file.size) || 0
+    if (!file || typeof file === 'string') {
+      return NextResponse.json({ ok: false, error: 'No file uploaded' }, { status: 400 })
+    }
+
+    const publicImages = path.join(process.cwd(), 'public', 'images')
+    const publicVideos = path.join(process.cwd(), 'public', 'videos')
+    if (!fs.existsSync(publicImages)) fs.mkdirSync(publicImages, { recursive: true })
+    if (!fs.existsSync(publicVideos)) fs.mkdirSync(publicVideos, { recursive: true })
+
+    const original = file.name || 'uploaded'
+    const ext = path.extname(original) || '.bin'
+    const mime = (file.type || '').toLowerCase()
+    const fileSize = file.size || 0
+
+    const isImage = mime.startsWith('image') || ['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(ext.toLowerCase())
+    const isVideo = mime.startsWith('video') || ['.mp4', '.mov', '.webm', '.ogv'].includes(ext.toLowerCase())
+
     const MAX_IMAGE = 5 * 1024 * 1024 // 5MB
     const MAX_VIDEO = 50 * 1024 * 1024 // 50MB
 
@@ -48,18 +37,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: 'video_too_large' }, { status: 413 })
     }
 
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+
     if (isImage) {
       let filename: string
       if (requestedTarget) {
-        // sanitize provided target and disallow traversal
         const base = path.basename(requestedTarget)
         filename = base || `uploaded-${Date.now()}${ext}`
       } else {
         filename = `uploaded-${Date.now()}${ext}`
       }
       const target = path.join(publicImages, filename)
-      fs.copyFileSync(tempPath, target)
-      fs.chmodSync(target, 0o644)
+      fs.writeFileSync(target, buffer)
       return NextResponse.json({ ok: true, file: `/images/${filename}` })
     }
 
@@ -85,20 +75,17 @@ export async function POST(req: Request) {
           }
         }
       } catch (e) {
-        // ignore errors reading directory
+        // ignore
       }
 
       const target = path.join(publicVideos, filename)
-      fs.copyFileSync(tempPath, target)
-      fs.chmodSync(target, 0o644)
+      fs.writeFileSync(target, buffer)
       return NextResponse.json({ ok: true, file: `/videos/${filename}` })
     }
 
-    // fallback: save into images
     const filename = `uploaded-${Date.now()}${ext}`
     const target = path.join(publicImages, filename)
-    fs.copyFileSync(tempPath, target)
-    fs.chmodSync(target, 0o644)
+    fs.writeFileSync(target, buffer)
     return NextResponse.json({ ok: true, file: `/images/${filename}` })
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e.message }, { status: 500 })

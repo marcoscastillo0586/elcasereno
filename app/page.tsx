@@ -15,11 +15,26 @@ export default function Home() {
   const [selectedItem, setSelectedItem] = useState<{ year: string; title: string; desc: string; photos?: string[] } | null>(null)
   const [activeTimelineIndex, setActiveTimelineIndex] = useState(0)
   const autoTimelineRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [heroVideoId, setHeroVideoId] = useState('iCbLZh_3MyA')
   const timelineContainerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const saved = localStorage.getItem('casereno-theme') as 'dark' | 'light' | null
     if (saved) setTheme(saved)
+    const savedVideo = localStorage.getItem('casereno-hero-youtube-id')
+    if (savedVideo) setHeroVideoId(savedVideo)
+
+    const handleUpdate = (e: Event) => {
+      const customEv = e as CustomEvent
+      if (customEv.detail) {
+        setHeroVideoId(customEv.detail)
+      } else {
+        const s = localStorage.getItem('casereno-hero-youtube-id')
+        if (s) setHeroVideoId(s)
+      }
+    }
+    window.addEventListener('casereno-hero-update', handleUpdate)
+    return () => window.removeEventListener('casereno-hero-update', handleUpdate)
   }, [])
 
   useEffect(() => {
@@ -237,20 +252,14 @@ export default function Home() {
 
       {/* HERO */}
       <section id="inicio" className="relative min-h-screen text-white flex flex-col">
-        <div className="absolute inset-0">
-          <video
-            autoPlay
-            muted
-            loop
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <iframe
             id="hero-video"
-            playsInline
-            poster="/images/casereno-bandera.jpg.jpeg"
-            className="w-full h-full object-cover object-center"
-            style={{ objectPosition: '60% center' }}
-          >
-            <source src="/videos/hero.webm" type="video/webm" />
-            Your browser does not support the video tag.
-          </video>
+            src={`https://www.youtube.com/embed/${heroVideoId}?autoplay=1&mute=1&loop=1&playlist=${heroVideoId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1`}
+            title="Hero Video"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300%] h-[300%] max-w-none border-0 pointer-events-none"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          />
         </div>
         <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/20"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40"></div>
