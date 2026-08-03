@@ -156,6 +156,18 @@ export default function AdminBar() {
     setShowLogin(true)
   }
 
+  async function doLogout() {
+    try {
+      await fetch('/api/admin/logout', { method: 'POST' })
+    } catch { /* ignore */ }
+    setIsAdmin(false)
+    setEditMode(false)
+    detachOverlays()
+    window.dispatchEvent(new CustomEvent('casereno-admin-editmode', { detail: { isAdmin: false, editMode: false } }))
+    setToast('Sesión cerrada')
+    setTimeout(() => setToast(null), 3000)
+  }
+
   function dispatchAddLogo(src: string, name: string) {
     window.dispatchEvent(new CustomEvent('admin:addLogo', { detail: { src, name } }))
   }
@@ -243,21 +255,17 @@ export default function AdminBar() {
         >
           A
         </button>
-        {isAdmin ? (
+        {isAdmin && editMode ? (
           <div className="flex items-center gap-2 text-xs">
-            {editMode ? (
-              <>
-                <button
-                  onClick={() => setEditMode(false)}
-                  title="Desactivar edición"
-                  className="text-[#888] border border-[#333] px-2 py-1 rounded-md text-xs transition-all hover:text-white hover:border-[#555]"
-                >
-                  Salir
-                </button>
-                <button onClick={handleAddLogo} title="Agregar nuevo logo" className="text-[#888] border border-[#333] px-2 py-1 rounded-md text-xs transition-all hover:text-white hover:border-[#555]">Logo</button>
-                <button onClick={handleChangeHeroVideo} title="Cambiar video inicial" className="text-[#888] border border-[#333] px-2 py-1 rounded-md text-xs transition-all hover:text-white hover:border-[#555]">Video</button>
-              </>
-            ) : null}
+            <button
+              onClick={doLogout}
+              title="Cerrar sesión de administrador"
+              className="text-[#888] border border-[#333] px-2 py-1 rounded-md text-xs transition-all hover:text-white hover:border-[#555]"
+            >
+              Salir
+            </button>
+            <button onClick={handleAddLogo} title="Agregar nuevo logo" className="text-[#888] border border-[#333] px-2 py-1 rounded-md text-xs transition-all hover:text-white hover:border-[#555]">Logo</button>
+            <button onClick={handleChangeHeroVideo} title="Cambiar video inicial" className="text-[#888] border border-[#333] px-2 py-1 rounded-md text-xs transition-all hover:text-white hover:border-[#555]">Video</button>
           </div>
         ) : null}
       </div>
