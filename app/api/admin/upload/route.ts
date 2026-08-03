@@ -30,11 +30,27 @@ export async function POST(req: Request) {
     const MAX_IMAGE = 5 * 1024 * 1024 // 5MB
     const MAX_VIDEO = 50 * 1024 * 1024 // 50MB
 
+    if (!isImage && !isVideo) {
+      return NextResponse.json({
+        ok: false,
+        error: 'invalid_format',
+        message: 'Formato no soportado. Formatos permitidos: PNG, JPG, JPEG, WEBP, GIF para imágenes (máx. 5 MB) y MP4, MOV, WEBM para videos (máx. 50 MB).'
+      }, { status: 400 })
+    }
+
     if (isImage && fileSize > MAX_IMAGE) {
-      return NextResponse.json({ ok: false, error: 'image_too_large' }, { status: 413 })
+      return NextResponse.json({
+        ok: false,
+        error: 'image_too_large',
+        message: 'La imagen supera el tamaño máximo permitido (5 MB). Formatos permitidos: PNG, JPG, JPEG, WEBP, GIF.'
+      }, { status: 413 })
     }
     if (isVideo && fileSize > MAX_VIDEO) {
-      return NextResponse.json({ ok: false, error: 'video_too_large' }, { status: 413 })
+      return NextResponse.json({
+        ok: false,
+        error: 'video_too_large',
+        message: 'El video supera el tamaño máximo permitido (50 MB). Formatos permitidos: MP4, MOV, WEBM.'
+      }, { status: 413 })
     }
 
     const arrayBuffer = await file.arrayBuffer()
@@ -45,7 +61,12 @@ export async function POST(req: Request) {
       if (requestedTarget) {
         const stripped = requestedTarget.startsWith('images/') ? requestedTarget.slice('images/'.length) : requestedTarget
         const segments = stripped.split(/[/\\]/).map(s => path.basename(s)).filter(s => s && s !== '.' && s !== '..')
-        relPath = segments.length > 0 ? segments.join('/') : `uploaded-${Date.now()}${ext}`
+        let rel = segments.length > 0 ? segments.join('/') : ''
+        const hasExtension = path.extname(rel) !== ''
+        if (!hasExtension) {
+          rel = rel ? `${rel}/uploaded-${Date.now()}${ext}` : `uploaded-${Date.now()}${ext}`
+        }
+        relPath = rel
       } else {
         relPath = `uploaded-${Date.now()}${ext}`
       }

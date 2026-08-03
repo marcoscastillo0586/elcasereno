@@ -12,7 +12,7 @@ function unauthorized() {
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
-  if (pathname === '/api/admin/login' || pathname === '/api/admin/check') {
+  if (pathname === '/api/admin/login' || pathname === '/api/admin/check' || pathname === '/api/admin/logout') {
     return NextResponse.next()
   }
 
