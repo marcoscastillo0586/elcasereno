@@ -58,13 +58,63 @@ const DATA_DIR = path.join(process.cwd(), 'data')
 const DATA_FILE = path.join(DATA_DIR, 'site-content.json')
 
 export function readSiteContent(): SiteContent {
+  let content = defaultSiteContent
   try {
     const raw = fs.readFileSync(DATA_FILE, 'utf-8')
-    const parsed = JSON.parse(raw)
-    return { ...defaultSiteContent, ...parsed }
+    content = { ...defaultSiteContent, ...JSON.parse(raw) }
   } catch {
-    return defaultSiteContent
+    content = defaultSiteContent
   }
+
+  // Auto-discover images inside public/images/clientes
+  try {
+    const clientesDir = path.join(process.cwd(), 'public', 'images', 'clientes')
+    if (fs.existsSync(clientesDir)) {
+      const files = fs.readdirSync(clientesDir)
+      const validExts = ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg', '.jfif']
+      const registeredSrcs = new Set(content.clientLogos.map(l => l.src))
+
+      for (const f of files) {
+        if (f.startsWith('.') || f.endsWith('.crdownload')) continue
+        const ext = path.extname(f).toLowerCase()
+        if (validExts.includes(ext)) {
+          const relPath = `/images/clientes/${f}`
+          if (!registeredSrcs.has(f) && !registeredSrcs.has(relPath)) {
+            const rawName = path.basename(f, ext)
+            const cleanName = rawName.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+            content.clientLogos.push({
+              src: relPath,
+              name: cleanName || 'Cliente'
+            })
+            registeredSrcs.add(relPath)
+          }
+        }
+      }
+    }
+  } catch {
+    /* ignore scan errors */
+  }
+
+  // Filter out any clientLogos pointing to /images/clientes/ that no longer exist on disk
+  try {
+    const clientesDir = path.join(process.cwd(), 'public', 'images', 'clientes')
+    content.clientLogos = content.clientLogos.filter(logo => {
+      if (logo.src.startsWith('/images/clientes/')) {
+        const fileName = logo.src.replace('/images/clientes/', '')
+        const fullPath = path.join(clientesDir, fileName)
+        return fs.existsSync(fullPath)
+      }
+      if (!logo.src.startsWith('/') && !logo.src.startsWith('http')) {
+        const fullPath = path.join(clientesDir, logo.src)
+        return fs.existsSync(fullPath)
+      }
+      return true
+    })
+  } catch {
+    /* ignore filter errors */
+  }
+
+  return content
 }
 
 export function writeSiteContent(content: SiteContent) {

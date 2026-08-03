@@ -685,8 +685,8 @@ export default function Home() {
                       >
                         <X size={13} />
                       </button>
-                      <div className="admin-editable relative h-16 flex items-center justify-center bg-white/5 rounded-[6px] overflow-hidden" data-logo-index={index}>
-                        <img src={imagePath} alt={logo.name} className="max-h-full max-w-full object-contain" />
+                      <div className="admin-editable relative h-20 flex items-center justify-center bg-white rounded-[8px] p-2.5 overflow-hidden" data-logo-index={index}>
+                        <img src={imagePath} alt={logo.name} className="max-h-full max-w-full w-auto h-auto object-contain object-center" />
                       </div>
                       <input
                         value={logo.name}

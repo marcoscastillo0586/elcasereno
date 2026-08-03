@@ -92,7 +92,9 @@ export default function AdminBar() {
       // attach a target so server can overwrite known files
       if (t.type === 'video') {
         fd.append('target', 'hero')
-      } else if (!(t.el as HTMLElement).dataset.timelineYear && !(t.el as HTMLElement).dataset.noticiaId && !(t.el as HTMLElement).dataset.logoIndex) {
+      } else if ((t.el as HTMLElement).dataset.logoIndex !== undefined) {
+        fd.append('target', 'images/clientes')
+      } else if (!(t.el as HTMLElement).dataset.timelineYear && !(t.el as HTMLElement).dataset.noticiaId) {
         const img = (t.el as HTMLElement).querySelector('img') as HTMLImageElement | null
         if (img && img.src) {
           const url = new URL(img.src, window.location.origin)
@@ -175,21 +177,30 @@ export default function AdminBar() {
   async function handleAddLogo() {
     const input = document.createElement('input')
     input.type = 'file'
-    input.accept = 'image/*'
+    input.accept = 'image/*,.png,.jpg,.jpeg,.webp,.gif'
     input.onchange = async () => {
       const file = input.files && input.files[0]
       if (!file) return
+
+      const MAX_IMAGE_SIZE = 5 * 1024 * 1024 // 5 MB
+      if (file.size > MAX_IMAGE_SIZE) {
+        const mb = (file.size / (1024 * 1024)).toFixed(1)
+        alert(`El logo que seleccionaste pesa ${mb} MB y supera el límite máximo permitido de 5 MB.\n\nFormatos permitidos: PNG, JPG, JPEG, WEBP, GIF (máximo 5 MB).`)
+        return
+      }
+
       const fd = new FormData()
       fd.append('file', file)
+      fd.append('target', 'images/clientes')
       const fileName = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ')
       const resp = await fetch('/api/admin/upload', { method: 'POST', body: fd })
       const data = await resp.json()
       if (data.ok && data.file) {
         dispatchAddLogo(data.file, fileName || 'Nuevo cliente')
-        setToast('Logo agregado')
+        setToast('Logo agregado en public/images/clientes')
         setTimeout(() => setToast(null), 3000)
       } else {
-        alert('Upload failed: ' + (data.error || 'unknown'))
+        alert(data.message || 'Error al subir el logo (máximo 5 MB en formato PNG, JPG, JPEG, WEBP, GIF).')
       }
     }
     input.click()
