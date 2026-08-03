@@ -17,21 +17,35 @@ export default function Home() {
   const autoTimelineRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [heroVideoId, setHeroVideoId] = useState('iCbLZh_3MyA')
   const timelineContainerRef = useRef<HTMLDivElement>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [editMode, setEditMode] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/admin/check').then(r => r.json()).then(j => { if (j?.ok) setIsAdmin(true) }).catch(() => { })
+    const onMode = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { isAdmin?: boolean; editMode?: boolean }
+      if (typeof detail?.isAdmin === 'boolean') setIsAdmin(detail.isAdmin)
+      if (typeof detail?.editMode === 'boolean') setEditMode(detail.editMode)
+    }
+    window.addEventListener('casereno-admin-editmode', onMode)
+    return () => window.removeEventListener('casereno-admin-editmode', onMode)
+  }, [])
+
+  function persistContent(patch: Partial<{ heroVideoId: string; clientLogos: { src: string; name: string }[]; timelinePhotos: Record<string, string[]> }>) {
+    fetch('/api/admin/content', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    }).catch(() => { /* keep local state even if the save fails */ })
+  }
 
   useEffect(() => {
     const saved = localStorage.getItem('casereno-theme') as 'dark' | 'light' | null
     if (saved) setTheme(saved)
-    const savedVideo = localStorage.getItem('casereno-hero-youtube-id')
-    if (savedVideo) setHeroVideoId(savedVideo)
 
     const handleUpdate = (e: Event) => {
       const customEv = e as CustomEvent
-      if (customEv.detail) {
-        setHeroVideoId(customEv.detail)
-      } else {
-        const s = localStorage.getItem('casereno-hero-youtube-id')
-        if (s) setHeroVideoId(s)
-      }
+      if (customEv.detail) setHeroVideoId(customEv.detail)
     }
     window.addEventListener('casereno-hero-update', handleUpdate)
     return () => window.removeEventListener('casereno-hero-update', handleUpdate)
@@ -143,28 +157,82 @@ export default function Home() {
     { year: '2025', title: 'Seguimos creciendo', desc: 'Nuevo centro de distribución en Riachuelo y sede en Ezeiza, Buenos Aires', photos: ['https://picsum.photos/seed/cas25a/600/400', 'https://picsum.photos/seed/cas25b/600/400'] },
   ]
 
+  const [timelinePhotoOverrides, setTimelinePhotoOverrides] = useState<Record<string, string[]>>({})
   const [clientLogos, setClientLogos] = useState([
     { src: 'puro-sol.png', name: 'PuroSol' },
-    { src: 'tonadita.png', name: 'Tonadita' },
     { src: 'surfrigo.png', name: 'Surfrigo' },
-    { src: 'dass.png', name: 'Dass' },
-    { src: 'fepasa.png', name: 'Fepasa' },
-    { src: 'tregar.png', name: 'Trégar' },
-    { src: 'don-satur.png', name: 'Don Satur' },
-    { src: 'soychu.png', name: 'Soychú' },
-    { src: 'ccam.png', name: 'CCAM' },
   ])
 
   useEffect(() => {
+    fetch('/api/content').then(r => r.json()).then(j => {
+      if (j?.heroVideoId) setHeroVideoId(j.heroVideoId)
+      if (j?.timelinePhotos) setTimelinePhotoOverrides(j.timelinePhotos)
+      if (j?.clientLogos) setClientLogos(j.clientLogos)
+    }).catch(() => { /* keep hardcoded defaults */ })
+  }, [])
+
+  function updateClientLogoName(index: number, name: string) {
+    setClientLogos(prev => {
+      const next = prev.map((l, i) => i === index ? { ...l, name } : l)
+      persistContent({ clientLogos: next })
+      return next
+    })
+  }
+
+  function deleteClientLogo(index: number) {
+    if (!confirm('¿Eliminar este logo de cliente?')) return
+    setClientLogos(prev => {
+      const next = prev.filter((_, i) => i !== index)
+      persistContent({ clientLogos: next })
+      return next
+    })
+  }
+
+  useEffect(() => {
+    const onPhotoUpdate = (event: Event) => {
+      const detail = (event as CustomEvent).detail as { year: string; index: number; url: string }
+      if (!detail?.year || detail.index == null || !detail.url) return
+      setTimelinePhotoOverrides(prev => {
+        const base = prev[detail.year] || timeline.find(t => t.year === detail.year)?.photos || []
+        const next = [...base]
+        next[detail.index] = detail.url
+        const updated = { ...prev, [detail.year]: next }
+        persistContent({ timelinePhotos: updated })
+        return updated
+      })
+    }
+    window.addEventListener('casereno-timeline-photo-update', onPhotoUpdate)
+
     const onAddLogo = (event: Event) => {
       const detail = (event as CustomEvent).detail as { src: string; name?: string }
       if (!detail?.src) return
       const src = detail.src
       const name = detail.name || detail.src.split('/').pop()?.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ') || 'Nuevo cliente'
-      setClientLogos(prev => [...prev, { src: src.startsWith('/') ? src : src, name }])
+      setClientLogos(prev => {
+        const next = [...prev, { src, name }]
+        persistContent({ clientLogos: next })
+        return next
+      })
     }
     window.addEventListener('admin:addLogo', onAddLogo as EventListener)
-    return () => window.removeEventListener('admin:addLogo', onAddLogo as EventListener)
+
+    const onLogoPhotoUpdate = (event: Event) => {
+      const detail = (event as CustomEvent).detail as { index: number; url: string }
+      if (detail?.index == null || !detail?.url) return
+      setClientLogos(prev => {
+        const next = prev.map((l, i) => i === detail.index ? { ...l, src: detail.url } : l)
+        persistContent({ clientLogos: next })
+        return next
+      })
+    }
+    window.addEventListener('casereno-logo-photo-update', onLogoPhotoUpdate)
+
+    return () => {
+      window.removeEventListener('casereno-timeline-photo-update', onPhotoUpdate)
+      window.removeEventListener('admin:addLogo', onAddLogo as EventListener)
+      window.removeEventListener('casereno-logo-photo-update', onLogoPhotoUpdate)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const diferencial = [
@@ -200,11 +268,11 @@ export default function Home() {
     },
   ]
 
-  const tipos = ['Tractores', 'Semitermicos', 'Chasis']
-  const modelosPorTipo: Record<string, string[]> = {
-    Tractores: ['STRALIS', 'HI-WAY', 'S-WAY', 'HI-ROAD'],
-    Chasis: ['TECTOR'],
-  }
+  const tiposUnidades = [
+    { title: 'Tractores', img: '/images/flota/tractores.jpg' },
+    { title: 'Semiremolques Térmicos', img: '/images/flota/semiremolques-termicos.jpg' },
+    { title: 'Chasis / Acoplados', img: '/images/flota/chasis-acoplados.jpg' },
+  ]
 
   return (
     <div className="min-h-screen bg-[#0d0d0d]">
@@ -471,21 +539,22 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[12px] p-6">
+          <div>
             <p className="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-6">Tipos de unidades</p>
-            <div className="space-y-5">
-              {tipos.map(t => (
-                <div key={t} className="flex flex-col">
-                  <h4 className="text-white font-semibold text-sm mb-2">{t}</h4>
-                  {modelosPorTipo[t] && modelosPorTipo[t].length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {modelosPorTipo[t].map(m => (
-                        <span key={m} className="text-[#888] text-xs px-3 py-1.5 rounded-[6px] border border-[rgba(245,196,34,0.15)] hover:border-yellow-400/50 hover:text-yellow-400 hover:bg-yellow-400/5 transition-all duration-200 cursor-default">{m}</span>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className="text-[#666] text-xs">Sin modelos especificados</span>
-                  )}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              {tiposUnidades.map(t => (
+                <div key={t.title} className="group rounded-[12px] overflow-hidden border border-[#2a2a2a] bg-[#1a1a1a] hover:border-yellow-400/40 hover:-translate-y-1 transition-all duration-300">
+                  <div className="p-5 pb-4">
+                    <h3 className="text-white font-bold text-lg leading-tight tracking-tight mb-3">{t.title}</h3>
+                    <div className="h-px bg-[#2a2a2a]" />
+                  </div>
+                  <div className="admin-editable relative aspect-[4/3] overflow-hidden">
+                    <img
+                      src={t.img}
+                      alt={t.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </div>
                 </div>
               ))}
             </div>
@@ -507,32 +576,33 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6">
 
             {/* Mapa */}
-            <div className="bg-[#07101a] rounded-3xl overflow-hidden border border-cyan-500/10 h-[520px] lg:h-[700px] lg:sticky lg:top-24 lg:self-start">
+            <div className="relative isolate z-0 bg-[#07101a] rounded-3xl overflow-hidden border border-cyan-500/10 h-[420px] lg:h-[560px]">
               <MapArgentina />
             </div>
 
-            {/* Columna derecha: sedes + cobertura */}
-            <div className="flex flex-col gap-4">
+            {/* Columna derecha: sedes */}
+            <div className="flex flex-col gap-3 lg:h-[560px]">
 
               {/* Sedes */}
               {[
-                { title: 'SEDE CENTRAL', desc: 'Monte Caseros, Corrientes', labelColor: '#F5C422', lat: -30.2597, lng: -57.6434 },
-                { title: 'SUCURSAL RIACHUELO', desc: 'Corrientes', labelColor: '#4A9EBF', lat: -27.36, lng: -58.7847 },
-                { title: 'SUCURSAL EZEIZA', desc: 'Buenos Aires', labelColor: '#4ABF7A', lat: -34.8272, lng: -58.5347 },
+                { title: 'SEDE CENTRAL', desc: 'Monte Caseros, Corrientes', address: 'Av. Libertador nº 1520', address2: 'Próximamente: Ruta Provincial 129 - KM 1,7', labelColor: '#F5C422', lat: -30.2597, lng: -57.6434 },
+                { title: 'SUCURSAL RIACHUELO', desc: 'Corrientes', address: 'Ruta Nacional nº 12 - KM 1013', labelColor: '#4A9EBF', lat: -27.36, lng: -58.7847 },
+                { title: 'SUCURSAL EZEIZA', desc: 'Buenos Aires', address: 'Av. Constitución (KM 33 de Autopista Ezeiza-Cañuelas)', labelColor: '#4ABF7A', lat: -34.8272, lng: -58.5347 },
               ].map((s, i) => (
-                <div key={i} className="rounded-[12px] border border-[#2a2a2a] p-5 bg-[#1a1a1a] hover:-translate-y-1 hover:shadow-[0_6px_24px_rgba(0,0,0,0.3)] transition-all duration-300 cursor-default" style={{ '--hover-border': s.labelColor } as React.CSSProperties}>
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-semibold uppercase tracking-[1px]" style={{ color: s.labelColor, border: `1px solid ${s.labelColor}33` }}>
-                    <MapPin size={13} />
+                <div key={i} className="flex-1 flex flex-col rounded-[12px] border border-[#2a2a2a] p-3.5 bg-[#1a1a1a] hover:-translate-y-1 hover:shadow-[0_6px_24px_rgba(0,0,0,0.3)] transition-all duration-300 cursor-default" style={{ '--hover-border': s.labelColor } as React.CSSProperties}>
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full mb-2 text-[11px] font-semibold uppercase tracking-[1px]" style={{ color: s.labelColor, border: `1px solid ${s.labelColor}33` }}>
+                    <MapPin size={11} />
                     {s.title}
                   </div>
-                  <div className="h-px bg-[#3a3a3a] mb-3"></div>
-                  <p className="text-white font-semibold">{s.desc}</p>
-                  <p className="text-[#888] text-sm mt-1 mb-4">Base operativa y logística para transporte nacional.</p>
+                  <div className="h-px bg-[#3a3a3a] mb-2"></div>
+                  <p className="text-white font-semibold text-sm">{s.desc}</p>
+                  <p className={`text-[#888] text-xs mt-0.5 ${s.address2 ? '' : 'mb-2.5'}`}>{s.address}</p>
+                  {s.address2 && <p className="text-[#666] text-xs italic mt-0.5 mb-2.5">{s.address2}</p>}
                   <a
                     href={`https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 w-full bg-white/6 border border-white/10 text-white text-xs font-medium px-4 py-2 rounded-full hover:bg-white/10 transition-colors duration-200"
+                    className="flex items-center justify-center gap-2 w-full mt-auto bg-white/6 border border-white/10 text-white text-xs font-medium px-4 py-1.5 rounded-full hover:bg-white/10 transition-colors duration-200"
                     onMouseEnter={e => { e.currentTarget.style.borderColor = `${s.labelColor}66`; e.currentTarget.style.color = s.labelColor }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.color = '' }}
                   >
@@ -542,31 +612,31 @@ export default function Home() {
                 </div>
               ))}
 
-              {/* Cobertura internacional */}
-              <div className="bg-[#07101a] border border-cyan-500/10 rounded-3xl p-5">
-                <p className="text-cyan-400 font-bold text-xs uppercase tracking-widest mb-4">Cobertura internacional</p>
-                <div className="grid grid-cols-5 gap-2">
-                  {[
-                    { name: 'Brasil', svg: 'br' },
-                    { name: 'Uruguay', svg: 'uy' },
-                    { name: 'Chile', svg: 'cl' },
-                    { name: 'Paraguay', svg: 'py' },
-                    { name: 'Bolivia', svg: 'bo' },
-                  ].map(p => (
-                    <div key={p.name} className="group flex flex-col items-center gap-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-[12px] px-2 py-4 hover:border-cyan-400/40 hover:-translate-y-1 hover:shadow-[0_4px_16px_rgba(0,0,0,0.3)] transition-all duration-300 cursor-default">
-                      <img
-                        src={`https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.2.3/flags/4x3/${p.svg}.svg`}
-                        alt={p.name}
-                        width={48}
-                        height={32}
-                        className="rounded-[3px] object-cover transition-transform duration-300 group-hover:scale-110"
-                      />
-                      <p className="text-white font-semibold text-xs text-center">{p.name}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            </div>
+          </div>
 
+          {/* Cobertura internacional: ancho completo debajo del mapa y las sedes */}
+          <div className="bg-[#07101a] border border-cyan-500/10 rounded-3xl p-5 mt-6">
+            <p className="text-cyan-400 font-bold text-xs uppercase tracking-widest mb-4">Cobertura internacional</p>
+            <div className="grid grid-cols-5 gap-2">
+              {[
+                { name: 'Brasil', svg: 'br' },
+                { name: 'Uruguay', svg: 'uy' },
+                { name: 'Chile', svg: 'cl' },
+                { name: 'Paraguay', svg: 'py' },
+                { name: 'Bolivia', svg: 'bo' },
+              ].map(p => (
+                <div key={p.name} className="group flex flex-col items-center gap-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-[12px] px-2 py-4 hover:border-cyan-400/40 hover:-translate-y-1 hover:shadow-[0_4px_16px_rgba(0,0,0,0.3)] transition-all duration-300 cursor-default">
+                  <img
+                    src={`https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.2.3/flags/4x3/${p.svg}.svg`}
+                    alt={p.name}
+                    width={48}
+                    height={32}
+                    className="rounded-[3px] object-cover transition-transform duration-300 group-hover:scale-110"
+                  />
+                  <p className="text-white font-semibold text-xs text-center">{p.name}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -579,6 +649,41 @@ export default function Home() {
           <h2 className="text-3xl md:text-4xl font-black text-white mb-3">Empresas que confían en nosotros</h2>
           <p className="text-gray-500 text-base">Trabajamos con empresas líderes en alimentos, frutas, logística y consumo masivo en toda Argentina.</p>
         </div>
+
+        {isAdmin && editMode && (
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
+            <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[12px] p-5">
+              <p className="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-4">Gestionar logos de clientes</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {clientLogos.map((logo, index) => {
+                  const isAbsolute = logo.src.startsWith('/')
+                  const imagePath = isAbsolute ? logo.src : `/images/clientes/${logo.src}`
+                  return (
+                    <div key={index} className="relative flex flex-col gap-2 bg-[#111] border border-[#2a2a2a] rounded-[8px] p-3">
+                      <button
+                        onClick={() => deleteClientLogo(index)}
+                        title="Eliminar logo"
+                        className="absolute top-2 right-2 z-[70] flex items-center justify-center w-7 h-7 rounded-md bg-black/70 text-red-400 border border-red-400/40 hover:bg-red-400/20 transition-colors"
+                      >
+                        <X size={13} />
+                      </button>
+                      <div className="admin-editable relative h-16 flex items-center justify-center bg-white/5 rounded-[6px] overflow-hidden" data-logo-index={index}>
+                        <img src={imagePath} alt={logo.name} className="max-h-full max-w-full object-contain" />
+                      </div>
+                      <input
+                        value={logo.name}
+                        onChange={e => updateClientLogoName(index, e.target.value)}
+                        placeholder="Nombre del cliente"
+                        className="w-full bg-[#111] border border-gray-700 rounded px-2 py-1 text-xs text-[#ffffff] focus:outline-none focus:border-yellow-400"
+                      />
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="relative">
           <div className="flex overflow-hidden">
             <div className="marquee-track">
@@ -778,10 +883,17 @@ export default function Home() {
                 </button>
               </div>
               <p className="text-gray-400 text-sm leading-relaxed mb-6">{selectedItem.desc}</p>
-              {selectedItem.photos && selectedItem.photos.length > 0 ? (
+              {(timelinePhotoOverrides[selectedItem.year] || selectedItem.photos || []).length > 0 ? (
                 <div className="grid grid-cols-2 gap-3">
-                  {selectedItem.photos.map((photo, i) => (
-                    <img key={i} src={photo} alt={`${selectedItem.title} - foto ${i + 1}`} className="rounded-xl w-full h-44 object-cover" />
+                  {(timelinePhotoOverrides[selectedItem.year] || selectedItem.photos || []).map((photo, i) => (
+                    <div
+                      key={i}
+                      className="admin-editable relative rounded-xl overflow-hidden"
+                      data-timeline-year={selectedItem.year}
+                      data-photo-index={i}
+                    >
+                      <img src={photo} alt={`${selectedItem.title} - foto ${i + 1}`} className="w-full h-44 object-cover" />
+                    </div>
                   ))}
                 </div>
               ) : (

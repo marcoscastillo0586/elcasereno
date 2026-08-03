@@ -41,16 +41,19 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(arrayBuffer)
 
     if (isImage) {
-      let filename: string
+      let relPath: string
       if (requestedTarget) {
-        const base = path.basename(requestedTarget)
-        filename = base || `uploaded-${Date.now()}${ext}`
+        const stripped = requestedTarget.startsWith('images/') ? requestedTarget.slice('images/'.length) : requestedTarget
+        const segments = stripped.split(/[/\\]/).map(s => path.basename(s)).filter(s => s && s !== '.' && s !== '..')
+        relPath = segments.length > 0 ? segments.join('/') : `uploaded-${Date.now()}${ext}`
       } else {
-        filename = `uploaded-${Date.now()}${ext}`
+        relPath = `uploaded-${Date.now()}${ext}`
       }
-      const target = path.join(publicImages, filename)
+      const target = path.join(publicImages, ...relPath.split('/'))
+      const targetDir = path.dirname(target)
+      if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true })
       fs.writeFileSync(target, buffer)
-      return NextResponse.json({ ok: true, file: `/images/${filename}` })
+      return NextResponse.json({ ok: true, file: `/images/${relPath}` })
     }
 
     if (isVideo) {

@@ -3,8 +3,18 @@
 import { useState, useEffect } from 'react'
 import { Menu, X, ArrowLeft, Calendar, Tag, Sun, Moon } from 'lucide-react'
 import Link from 'next/link'
+import AdminBar from '../components/AdminBar'
 
-const noticias = [
+type Noticia = {
+  id: number
+  fecha: string
+  categoria: string
+  titulo: string
+  resumen: string
+  imagen: string
+}
+
+const defaultNoticias: Noticia[] = [
   {
     id: 1,
     fecha: '2025-06-01',
@@ -36,14 +46,20 @@ const categoriaColor: Record<string, string> = {
   Operaciones: 'bg-blue-400/15 text-blue-600 border border-blue-400/30',
   Empresa: 'bg-green-400/15 text-green-600 border border-green-400/30',
 }
+const categoriaColorDefault = 'bg-gray-400/15 text-gray-600 border border-gray-400/30'
 
 function formatFecha(fecha: string) {
-  return new Date(fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })
+  const parsed = new Date(fecha)
+  if (isNaN(parsed.getTime())) return fecha
+  return parsed.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 export default function Noticias() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [theme, setTheme] = useState<'dark' | 'light'>('light')
+  const [noticias, setNoticias] = useState<Noticia[]>(defaultNoticias)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [editMode, setEditMode] = useState(false)
 
   useEffect(() => {
     const saved = localStorage.getItem('casereno-theme') as 'dark' | 'light' | null
@@ -54,6 +70,53 @@ export default function Noticias() {
     document.documentElement.setAttribute('data-theme', theme)
     localStorage.setItem('casereno-theme', theme)
   }, [theme])
+
+  useEffect(() => {
+    fetch('/api/content').then(r => r.json()).then(j => {
+      if (j?.noticias) setNoticias(j.noticias)
+    }).catch(() => { /* keep hardcoded defaults */ })
+
+    fetch('/api/admin/check').then(r => r.json()).then(j => { if (j?.ok) setIsAdmin(true) }).catch(() => { })
+
+    const onMode = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { isAdmin?: boolean; editMode?: boolean }
+      if (typeof detail?.isAdmin === 'boolean') setIsAdmin(detail.isAdmin)
+      if (typeof detail?.editMode === 'boolean') setEditMode(detail.editMode)
+    }
+    window.addEventListener('casereno-admin-editmode', onMode)
+
+    const onPhotoUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { id: number; url: string }
+      if (!detail?.id || !detail?.url) return
+      setNoticias(prev => {
+        const next = prev.map(n => n.id === detail.id ? { ...n, imagen: detail.url } : n)
+        persist(next)
+        return next
+      })
+    }
+    window.addEventListener('casereno-noticia-photo-update', onPhotoUpdate)
+
+    return () => {
+      window.removeEventListener('casereno-admin-editmode', onMode)
+      window.removeEventListener('casereno-noticia-photo-update', onPhotoUpdate)
+    }
+  }, [])
+
+  function persist(list: Noticia[]) {
+    fetch('/api/admin/content', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ noticias: list }),
+    }).catch(() => { /* keep local state even if the save fails */ })
+  }
+
+  function updateNoticia(id: number, patch: Partial<Noticia>) {
+    setNoticias(prev => {
+      const next = prev.map(n => n.id === id ? { ...n, ...patch } : n)
+      persist(next)
+      return next
+    })
+  }
 
   return (
     <div className="min-h-screen bg-[#0d0d0d]">
@@ -120,8 +183,8 @@ export default function Noticias() {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {noticias.map(noticia => (
-            <article key={noticia.id} className="bg-[#1e1e1e] rounded-2xl border border-white/7 overflow-hidden hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] hover:-translate-y-1 transition-all duration-300">
-              <div className="h-48 overflow-hidden">
+            <article key={noticia.id} className="relative bg-[#1e1e1e] rounded-2xl border border-white/7 overflow-hidden hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] hover:-translate-y-1 transition-all duration-300">
+              <div className="admin-editable relative h-48 overflow-hidden" data-noticia-id={noticia.id}>
                 <img
                   src={noticia.imagen}
                   alt={noticia.titulo}
@@ -129,27 +192,55 @@ export default function Noticias() {
                 />
               </div>
               <div className="p-5">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className={`text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full ${categoriaColor[noticia.categoria]}`}>
-                    <Tag size={9} className="inline mr-1" />{noticia.categoria}
-                  </span>
-                  <span className="text-[#999] text-[11px] flex items-center gap-1">
-                    <Calendar size={10} />
-                    {formatFecha(noticia.fecha)}
-                  </span>
-                </div>
-                <h2 className="text-white font-bold text-base leading-snug mb-2">{noticia.titulo}</h2>
-                <p className="text-[#666] text-sm leading-relaxed">{noticia.resumen}</p>
+                {editMode && isAdmin ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <input
+                        value={noticia.categoria}
+                        onChange={e => updateNoticia(noticia.id, { categoria: e.target.value })}
+                        placeholder="Categoría"
+                        className="w-1/2 bg-[#111] border border-gray-700 rounded px-2 py-1 text-xs text-[#ffffff] focus:outline-none focus:border-yellow-400"
+                      />
+                      <input
+                        type="date"
+                        value={noticia.fecha}
+                        onChange={e => updateNoticia(noticia.id, { fecha: e.target.value })}
+                        className="w-1/2 bg-[#111] border border-gray-700 rounded px-2 py-1 text-xs text-[#ffffff] focus:outline-none focus:border-yellow-400"
+                      />
+                    </div>
+                    <input
+                      value={noticia.titulo}
+                      onChange={e => updateNoticia(noticia.id, { titulo: e.target.value })}
+                      placeholder="Título"
+                      className="w-full bg-[#111] border border-gray-700 rounded px-2 py-1.5 text-sm font-bold text-[#ffffff] focus:outline-none focus:border-yellow-400"
+                    />
+                    <textarea
+                      value={noticia.resumen}
+                      onChange={e => updateNoticia(noticia.id, { resumen: e.target.value })}
+                      placeholder="Información / resumen"
+                      rows={3}
+                      className="w-full bg-[#111] border border-gray-700 rounded px-2 py-1.5 text-sm text-[#ffffff] resize-none focus:outline-none focus:border-yellow-400"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className={`text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full ${categoriaColor[noticia.categoria] || categoriaColorDefault}`}>
+                        <Tag size={9} className="inline mr-1" />{noticia.categoria}
+                      </span>
+                      <span className="text-[#999] text-[11px] flex items-center gap-1">
+                        <Calendar size={10} />
+                        {formatFecha(noticia.fecha)}
+                      </span>
+                    </div>
+                    <h2 className="text-white font-bold text-base leading-snug mb-2">{noticia.titulo}</h2>
+                    <p className="text-[#666] text-sm leading-relaxed">{noticia.resumen}</p>
+                  </>
+                )}
               </div>
             </article>
           ))}
         </div>
-
-        {noticias.length === 0 && (
-          <div className="text-center py-24">
-            <p className="text-[#999] text-lg">No hay noticias por el momento.</p>
-          </div>
-        )}
       </main>
 
       {/* FOOTER */}
@@ -160,6 +251,7 @@ export default function Noticias() {
             <ArrowLeft size={13} /> Volver al sitio principal
           </Link>
           <span className="text-[#c9a882] text-xs">© {new Date().getFullYear()} Transporte El Casereño S.A. Todos los derechos reservados</span>
+          <AdminBar />
         </div>
       </footer>
 

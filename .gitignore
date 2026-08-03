@@ -28,5 +28,8 @@ yarn-error.log*
 # vercel
 .vercel
 
+# runtime site content (edited via admin panel on the server)
+/data/
+
 # typescript
 *.tsbuildinfo

@@ -17,24 +17,35 @@ export default function AdminPage() {
   const [msg, setMsg] = useState<string | null>(null)
 
   useEffect(() => {
-    const saved = localStorage.getItem('casereno-hero-youtube-id')
-    if (saved) {
-      setVideoId(saved)
-      setYoutubeUrl(`https://youtube.com/shorts/${saved}`)
-    } else {
-      setYoutubeUrl('https://youtube.com/shorts/iCbLZh_3MyA')
-    }
+    fetch('/api/content').then(r => r.json()).then(j => {
+      const saved = j?.heroVideoId
+      if (saved) {
+        setVideoId(saved)
+        setYoutubeUrl(`https://youtube.com/shorts/${saved}`)
+      } else {
+        setYoutubeUrl('https://youtube.com/shorts/iCbLZh_3MyA')
+      }
+    }).catch(() => setYoutubeUrl('https://youtube.com/shorts/iCbLZh_3MyA'))
   }, [])
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     const id = getYouTubeId(youtubeUrl)
     if (!id) {
       setMsg('URL de YouTube no válida. Ingresá un enlace válido como: https://youtube.com/shorts/iCbLZh_3MyA')
       return
     }
+    const resp = await fetch('/api/admin/content', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ heroVideoId: id }),
+    })
+    const data = await resp.json()
+    if (!data.ok) {
+      setMsg('No se pudo guardar: ' + (data.error || 'unknown'))
+      return
+    }
     setVideoId(id)
-    localStorage.setItem('casereno-hero-youtube-id', id)
     window.dispatchEvent(new CustomEvent('casereno-hero-update', { detail: id }))
     setMsg('¡Video de portada actualizado exitosamente!')
   }

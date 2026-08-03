@@ -71,8 +71,10 @@ export default function MapArgentina() {
       delete (L.Icon.Default.prototype as any)._getIconUrl
 
       map = L.map(containerRef.current, {
-        center: [-33, -61],
+        center: [-35.5, -63],
         zoom: 4,
+        minZoom: 3,
+        maxBounds: [[-70, -100], [8, -25]],
         zoomControl: true,
         attributionControl: false,
         scrollWheelZoom: false,

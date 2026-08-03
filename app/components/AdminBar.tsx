@@ -17,9 +17,29 @@ export default function AdminBar() {
   }, [])
 
   useEffect(() => {
+    window.dispatchEvent(new CustomEvent('casereno-admin-editmode', { detail: { isAdmin, editMode } }))
+  }, [isAdmin, editMode])
+
+  useEffect(() => {
     if (!isAdmin) return
-    if (editMode) attachOverlays()
-    else detachOverlays()
+    if (!editMode) {
+      detachOverlays()
+      return
+    }
+    attachOverlays()
+    // Re-attach whenever new editable elements appear (e.g. the timeline modal
+    // opening), since it's only rendered on demand after edit mode is on.
+    let scheduled = false
+    const observer = new MutationObserver(() => {
+      if (scheduled) return
+      scheduled = true
+      requestAnimationFrame(() => {
+        scheduled = false
+        attachOverlays()
+      })
+    })
+    observer.observe(document.body, { childList: true, subtree: true })
+    return () => observer.disconnect()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editMode, isAdmin])
 
@@ -36,7 +56,7 @@ export default function AdminBar() {
     const targets: { el: Element; type: 'image' | 'video' }[] = []
     const hero = document.querySelector('#hero-video')
     if (hero) targets.push({ el: hero, type: 'video' })
-    document.querySelectorAll('.cliente-logo, .admin-editable').forEach(el => targets.push({ el, type: 'image' }))
+    document.querySelectorAll('.admin-editable').forEach(el => targets.push({ el, type: 'image' }))
 
     targets.forEach(t => {
       const parent = t.el as HTMLElement
@@ -72,12 +92,16 @@ export default function AdminBar() {
       // attach a target so server can overwrite known files
       if (t.type === 'video') {
         fd.append('target', 'hero')
-      } else {
+      } else if (!(t.el as HTMLElement).dataset.timelineYear && !(t.el as HTMLElement).dataset.noticiaId && !(t.el as HTMLElement).dataset.logoIndex) {
         const img = (t.el as HTMLElement).querySelector('img') as HTMLImageElement | null
-        if (img && img.src && img.src.startsWith('/images/')) {
-          const parts = img.src.split('/')
-          const name = parts[parts.length - 1]
-          fd.append('target', `images/${name}`)
+        if (img && img.src) {
+          const url = new URL(img.src, window.location.origin)
+          const marker = '/images/'
+          const idx = url.pathname.indexOf(marker)
+          if (idx !== -1) {
+            const rel = url.pathname.slice(idx + marker.length)
+            fd.append('target', `images/${rel}`)
+          }
         }
       }
       const resp = await fetch('/api/admin/upload', { method: 'POST', body: fd })
@@ -86,6 +110,25 @@ export default function AdminBar() {
         if (t.type === 'image') {
           const img = (t.el as HTMLElement).querySelector('img') as HTMLImageElement | null
           if (img) img.src = data.file + '?t=' + Date.now()
+          const year = (t.el as HTMLElement).dataset.timelineYear
+          const photoIndex = (t.el as HTMLElement).dataset.photoIndex
+          if (year && photoIndex !== undefined) {
+            window.dispatchEvent(new CustomEvent('casereno-timeline-photo-update', {
+              detail: { year, index: Number(photoIndex), url: data.file },
+            }))
+          }
+          const noticiaId = (t.el as HTMLElement).dataset.noticiaId
+          if (noticiaId !== undefined) {
+            window.dispatchEvent(new CustomEvent('casereno-noticia-photo-update', {
+              detail: { id: Number(noticiaId), url: data.file },
+            }))
+          }
+          const logoIndex = (t.el as HTMLElement).dataset.logoIndex
+          if (logoIndex !== undefined) {
+            window.dispatchEvent(new CustomEvent('casereno-logo-photo-update', {
+              detail: { index: Number(logoIndex), url: data.file },
+            }))
+          }
         } else {
           const video = t.el as HTMLVideoElement
           // attempt to update source
@@ -149,8 +192,14 @@ export default function AdminBar() {
     return null
   }
 
-  function handleChangeHeroVideo() {
-    const currentId = localStorage.getItem('casereno-hero-youtube-id') || 'iCbLZh_3MyA'
+  async function handleChangeHeroVideo() {
+    let currentId = 'iCbLZh_3MyA'
+    try {
+      const r = await fetch('/api/content')
+      const j = await r.json()
+      if (j?.heroVideoId) currentId = j.heroVideoId
+    } catch { /* fall back to default */ }
+
     const currentUrl = `https://youtube.com/shorts/${currentId}`
     const inputUrl = prompt('Ingresá la URL del video de YouTube para la portada:', currentUrl)
     if (!inputUrl) return
@@ -161,7 +210,17 @@ export default function AdminBar() {
       return
     }
 
-    localStorage.setItem('casereno-hero-youtube-id', videoId)
+    const resp = await fetch('/api/admin/content', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ heroVideoId: videoId }),
+    })
+    const data = await resp.json()
+    if (!data.ok) {
+      alert('No se pudo guardar el video: ' + (data.error || 'unknown'))
+      return
+    }
+
     window.dispatchEvent(new CustomEvent('casereno-hero-update', { detail: videoId }))
 
     const heroIframe = document.querySelector('#hero-video') as HTMLIFrameElement | null
