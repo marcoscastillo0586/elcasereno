@@ -4,6 +4,19 @@ import path from 'path'
 
 export const runtime = 'nodejs'
 
+function sanitizeFilename(originalName: string): string {
+  const ext = path.extname(originalName).toLowerCase() || '.bin'
+  const base = path.basename(originalName, ext)
+  const cleanBase = base
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+  return `${cleanBase || 'uploaded'}${ext}`
+}
+
 export async function POST(req: Request) {
   try {
     const formData = await req.formData()
@@ -57,6 +70,7 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(arrayBuffer)
 
     if (isImage) {
+      const safeOriginalName = sanitizeFilename(file.name || 'uploaded')
       let relPath: string
       if (requestedTarget) {
         const stripped = requestedTarget.startsWith('images/') ? requestedTarget.slice('images/'.length) : requestedTarget
@@ -64,15 +78,25 @@ export async function POST(req: Request) {
         let rel = segments.length > 0 ? segments.join('/') : ''
         const hasExtension = path.extname(rel) !== ''
         if (!hasExtension) {
-          rel = rel ? `${rel}/uploaded-${Date.now()}${ext}` : `uploaded-${Date.now()}${ext}`
+          rel = rel ? `${rel}/${safeOriginalName}` : safeOriginalName
         }
         relPath = rel
       } else {
-        relPath = `uploaded-${Date.now()}${ext}`
+        relPath = safeOriginalName
       }
-      const target = path.join(publicImages, ...relPath.split('/'))
+
+      let target = path.join(publicImages, ...relPath.split('/'))
       const targetDir = path.dirname(target)
       if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true })
+
+      if (fs.existsSync(target) && requestedTarget && path.extname(requestedTarget) === '') {
+        const fileExt = path.extname(target)
+        const baseName = path.basename(target, fileExt)
+        const newFilename = `${baseName}-${Date.now().toString().slice(-4)}${fileExt}`
+        target = path.join(targetDir, newFilename)
+        relPath = path.relative(publicImages, target).replace(/\\/g, '/')
+      }
+
       fs.writeFileSync(target, buffer)
       return NextResponse.json({ ok: true, file: `/images/${relPath}` })
     }
