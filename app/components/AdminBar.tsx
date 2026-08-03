@@ -83,10 +83,38 @@ export default function AdminBar() {
   function openFileDialog(t: { el: Element; type: 'image' | 'video' }) {
     const input = document.createElement('input')
     input.type = 'file'
-    input.accept = t.type === 'video' ? 'video/*' : 'image/*'
+    input.accept = t.type === 'video' ? 'video/*,.mp4,.mov,.webm' : 'image/*,.png,.jpg,.jpeg,.webp,.gif'
     input.onchange = async () => {
       const file = input.files && input.files[0]
       if (!file) return
+
+      const MAX_IMAGE_SIZE = 5 * 1024 * 1024 // 5 MB
+      const MAX_VIDEO_SIZE = 50 * 1024 * 1024 // 50 MB
+
+      if (t.type === 'image' && file.size > MAX_IMAGE_SIZE) {
+        const mb = (file.size / (1024 * 1024)).toFixed(1)
+        alert(`La imagen que seleccionaste pesa ${mb} MB y supera el límite máximo permitido de 5 MB.\n\nFormatos permitidos: PNG, JPG, JPEG, WEBP, GIF (máximo 5 MB).`)
+        return
+      }
+
+      if (t.type === 'video' && file.size > MAX_VIDEO_SIZE) {
+        const mb = (file.size / (1024 * 1024)).toFixed(1)
+        alert(`El video que seleccionaste pesa ${mb} MB y supera el límite máximo permitido de 50 MB.\n\nFormatos permitidos: MP4, MOV, WEBM (máximo 50 MB).`)
+        return
+      }
+
+      // Capture old image path to delete it after successful upload
+      let oldPath: string | null = null
+      if (t.type === 'image') {
+        const imgEl = (t.el as HTMLElement).querySelector('img') as HTMLImageElement | null
+        if (imgEl && imgEl.src) {
+          try {
+            const u = new URL(imgEl.src, window.location.origin)
+            oldPath = u.pathname
+          } catch { }
+        }
+      }
+
       const fd = new FormData()
       fd.append('file', file)
       // attach a target so server can overwrite known files
@@ -110,6 +138,15 @@ export default function AdminBar() {
       const data = await resp.json()
       if (data.ok && data.file) {
         if (t.type === 'image') {
+          // Delete physical old image if replaced with a new file
+          if (oldPath && oldPath !== data.file && oldPath.startsWith('/images/')) {
+            fetch('/api/admin/delete', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ filePath: oldPath }),
+            }).catch(() => { /* ignore deletion error */ })
+          }
+
           const img = (t.el as HTMLElement).querySelector('img') as HTMLImageElement | null
           if (img) img.src = data.file + '?t=' + Date.now()
           const year = (t.el as HTMLElement).dataset.timelineYear
@@ -148,7 +185,15 @@ export default function AdminBar() {
           }
         }
       } else {
-        alert('Upload failed: ' + (data.error || 'unknown'))
+        if (data.message) {
+          alert(data.message)
+        } else if (data.error === 'image_too_large') {
+          alert('La imagen supera el tamaño máximo permitido (5 MB).\n\nFormatos permitidos: PNG, JPG, JPEG, WEBP, GIF.')
+        } else if (data.error === 'video_too_large') {
+          alert('El video supera el tamaño máximo permitido (50 MB).\n\nFormatos permitidos: MP4, MOV, WEBM.')
+        } else {
+          alert(`Error al subir el archivo: ${data.error || 'desconocido'}\n\nFormatos permitidos para imágenes: PNG, JPG, JPEG, WEBP, GIF (hasta 5 MB).\nFormatos para videos: MP4, MOV, WEBM (hasta 50 MB).`)
+        }
       }
     }
     input.click()
