@@ -41,7 +41,7 @@ export default function Home() {
     return () => window.removeEventListener('casereno-admin-editmode', onMode)
   }, [])
 
-  function persistContent(patch: Partial<{ heroVideoId: string; clientLogos: { src: string; name: string }[]; timelinePhotos: Record<string, string[]> }>) {
+  function persistContent(patch: Partial<{ heroVideoId: string; clientLogos: { src: string; name: string }[]; timelinePhotos: Record<string, string[]>; historiaGallery: string[] }>) {
     fetch('/api/admin/content', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -172,13 +172,35 @@ export default function Home() {
     { src: 'puro-sol.png', name: 'PuroSol' },
     { src: 'surfrigo.png', name: 'Surfrigo' },
   ])
+  const [historiaGallery, setHistoriaGallery] = useState<string[]>([
+    '/images/casereno1.png',
+    '/images/casereno2.png',
+    '/images/casereno3.png',
+    '/images/casereno5.png',
+  ])
+  const [galleryLightbox, setGalleryLightbox] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/content').then(r => r.json()).then(j => {
       if (j?.heroVideoId) setHeroVideoId(j.heroVideoId)
       if (j?.timelinePhotos) setTimelinePhotoOverrides(j.timelinePhotos)
       if (j?.clientLogos) setClientLogos(j.clientLogos)
+      if (j?.historiaGallery) setHistoriaGallery(j.historiaGallery)
     }).catch(() => { /* keep hardcoded defaults */ })
+  }, [])
+
+  useEffect(() => {
+    const onHistoriaPhotoUpdate = (event: Event) => {
+      const detail = (event as CustomEvent).detail as { index: number; url: string }
+      if (detail?.index == null || !detail?.url) return
+      setHistoriaGallery(prev => {
+        const next = prev.map((src, i) => i === detail.index ? detail.url : src)
+        persistContent({ historiaGallery: next })
+        return next
+      })
+    }
+    window.addEventListener('casereno-historia-photo-update', onHistoriaPhotoUpdate)
+    return () => window.removeEventListener('casereno-historia-photo-update', onHistoriaPhotoUpdate)
   }, [])
 
   function updateClientLogoName(index: number, name: string) {
@@ -478,6 +500,8 @@ export default function Home() {
                     >
                       <h3 style={{ color: isActive ? '#ffffff' : '#333333' }} className="font-bold text-xs leading-tight transition-colors duration-300">{item.title}</h3>
                       <p style={{ color: isActive ? '#cccccc' : '#666666' }} className={`text-xs mt-1 leading-relaxed transition-colors duration-300 ${isActive ? '' : 'line-clamp-2'}`}>{item.desc}</p>
+                      {/* "Ver fotos" deshabilitado a pedido del cliente: todavía no cuenta con las fotos
+                          de cada hito. Descomentar cuando estén disponibles para reactivar el modal.
                       <div
                         className="flex items-center gap-1 mt-2 w-fit"
                         onClick={e => { e.stopPropagation(); setSelectedItem(item) }}
@@ -485,10 +509,47 @@ export default function Home() {
                         <Camera size={9} style={{ color: isActive ? '#F5C422' : '#92600a' }} className="transition-colors duration-300" />
                         <span style={{ color: isActive ? '#F5C422' : '#92600a' }} className="text-[9px] transition-colors duration-300 underline underline-offset-2">Ver fotos</span>
                       </div>
+                      */}
                     </div>
                   </div>
                 )
               })}
+            </div>
+          </div>
+
+          {/* Galería de fotos de la historia */}
+          <div className="grid grid-cols-2 gap-4 mb-14">
+            <div className="flex flex-col gap-4">
+              <div
+                className="admin-editable group relative h-52 rounded-2xl overflow-hidden cursor-zoom-in"
+                data-historia-index={0}
+                onClick={() => setGalleryLightbox(historiaGallery[0])}
+              >
+                <img src={historiaGallery[0]} alt="Historia El Casereño 1" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+              </div>
+              <div
+                className="admin-editable group relative h-36 rounded-2xl overflow-hidden cursor-zoom-in"
+                data-historia-index={2}
+                onClick={() => setGalleryLightbox(historiaGallery[2])}
+              >
+                <img src={historiaGallery[2]} alt="Historia El Casereño 3" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+              </div>
+            </div>
+            <div className="flex flex-col gap-4 mt-10">
+              <div
+                className="admin-editable group relative h-32 rounded-2xl overflow-hidden cursor-zoom-in"
+                data-historia-index={1}
+                onClick={() => setGalleryLightbox(historiaGallery[1])}
+              >
+                <img src={historiaGallery[1]} alt="Historia El Casereño 2" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+              </div>
+              <div
+                className="admin-editable group relative h-48 rounded-2xl overflow-hidden cursor-zoom-in"
+                data-historia-index={3}
+                onClick={() => setGalleryLightbox(historiaGallery[3])}
+              >
+                <img src={historiaGallery[3]} alt="Historia El Casereño 4" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+              </div>
             </div>
           </div>
 
@@ -898,7 +959,8 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* MODAL TIMELINE */}
+      {/* MODAL TIMELINE - deshabilitado a pedido del cliente (todavia no tiene las fotos
+          de cada hito). Descomentar junto con el boton "Ver fotos" de arriba para reactivarlo.
       {selectedItem && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedItem(null)}>
           <div className="bg-[#1a1a1a] border border-yellow-400/20 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
@@ -934,6 +996,22 @@ export default function Home() {
               )}
             </div>
           </div>
+        </div>
+      )}
+      */}
+
+      {/* LIGHTBOX GALERIA HISTORIA */}
+      {galleryLightbox && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm cursor-zoom-out" onClick={() => setGalleryLightbox(null)}>
+          <button onClick={() => setGalleryLightbox(null)} className="absolute top-5 right-5 text-white hover:text-yellow-400 transition-colors z-10" aria-label="Cerrar">
+            <X size={28} />
+          </button>
+          <img
+            src={galleryLightbox}
+            alt="Historia El Casereño"
+            className="max-w-full max-h-[90vh] rounded-xl object-contain shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          />
         </div>
       )}
 

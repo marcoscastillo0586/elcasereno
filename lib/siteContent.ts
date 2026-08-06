@@ -17,6 +17,7 @@ export type SiteContent = {
   clientLogos: ClientLogo[]
   noticias: Noticia[]
   timelinePhotos: Record<string, string[]>
+  historiaGallery: string[]
 }
 
 export const defaultSiteContent: SiteContent = {
@@ -52,6 +53,12 @@ export const defaultSiteContent: SiteContent = {
     },
   ],
   timelinePhotos: {},
+  historiaGallery: [
+    '/images/casereno1.png',
+    '/images/casereno2.png',
+    '/images/casereno3.png',
+    '/images/casereno5.png',
+  ],
 }
 
 const DATA_DIR = path.join(process.cwd(), 'data')

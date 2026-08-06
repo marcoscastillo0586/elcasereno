@@ -67,7 +67,7 @@ export default function AdminBar() {
       btn.className = 'admin-overlay-btn'
       btn.title = 'Agregar / reemplazar media'
       btn.innerText = '+'
-      btn.onclick = () => openFileDialog(t)
+      btn.onclick = (e) => { e.stopPropagation(); openFileDialog(t) }
       Object.assign(btn.style, {
         position: 'absolute', right: '8px', top: '8px', zIndex: 60,
         width: '34px', height: '34px', borderRadius: '8px', background: '#111', color: '#facc15', border: '1px solid #333', fontSize: '20px', cursor: 'pointer'
@@ -122,7 +122,7 @@ export default function AdminBar() {
         fd.append('target', 'hero')
       } else if ((t.el as HTMLElement).dataset.logoIndex !== undefined) {
         fd.append('target', 'images/clientes')
-      } else if (!(t.el as HTMLElement).dataset.timelineYear && !(t.el as HTMLElement).dataset.noticiaId) {
+      } else if (!(t.el as HTMLElement).dataset.timelineYear && !(t.el as HTMLElement).dataset.noticiaId && !(t.el as HTMLElement).dataset.historiaIndex) {
         const img = (t.el as HTMLElement).querySelector('img') as HTMLImageElement | null
         if (img && img.src) {
           const url = new URL(img.src, window.location.origin)
@@ -166,6 +166,12 @@ export default function AdminBar() {
           if (logoIndex !== undefined) {
             window.dispatchEvent(new CustomEvent('casereno-logo-photo-update', {
               detail: { index: Number(logoIndex), url: data.file },
+            }))
+          }
+          const historiaIndex = (t.el as HTMLElement).dataset.historiaIndex
+          if (historiaIndex !== undefined) {
+            window.dispatchEvent(new CustomEvent('casereno-historia-photo-update', {
+              detail: { index: Number(historiaIndex), url: data.file },
             }))
           }
         } else {
