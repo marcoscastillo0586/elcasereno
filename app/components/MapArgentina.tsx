@@ -8,9 +8,9 @@ const PROVINCES_URL = 'https://raw.githubusercontent.com/codeforamerica/click_th
 const NEIGHBOR_COUNTRY_STYLE = { fill: '#334155', border: '#64748b', opacity: 0.5 }
 
 const SEDES = [
-  { label: 'Sede Central', city: 'Monte Caseros, Ctes.', lat: -30.2597, lng: -57.6434, main: true  },
-  { label: 'Sucursal',     city: 'Riachuelo, Ctes.',     lat: -27.36,   lng: -58.7847, main: false },
-  { label: 'Sucursal',     city: 'Ezeiza, Bs.As.',       lat: -34.8272, lng: -58.5347, main: false },
+  { label: 'Sede Central', city: 'Monte Caseros, Ctes.', lat: -30.2624734, lng: -57.6436151, main: true  },
+  { label: 'Sucursal',     city: 'Riachuelo, Ctes.',     lat: -27.6330156, lng: -58.7380877, main: false },
+  { label: 'Sucursal',     city: 'Ezeiza, Bs.As.',       lat: -34.8324837, lng: -58.5127149, main: false },
 ]
 
 // Países limítrofes con banderas (hub 0 = Sede Central, 2 = Sucursal Ezeiza)

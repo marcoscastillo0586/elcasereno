@@ -528,7 +528,7 @@ export default function Home() {
                 <img src={historiaGallery[0]} alt="Historia El Casereño 1" className="w-full h-full object-cover" />
               </div>
               <div
-                className="admin-editable group relative h-36 rounded-2xl overflow-hidden border border-white/6 cursor-zoom-in hover:border-yellow-400/40 hover:-translate-y-3 hover:scale-105 hover:shadow-[0_16px_40px_rgba(250,204,21,0.45)] transition-all duration-300"
+                className="admin-editable group relative aspect-square rounded-2xl overflow-hidden border border-white/6 cursor-zoom-in hover:border-yellow-400/40 hover:-translate-y-3 hover:scale-105 hover:shadow-[0_16px_40px_rgba(250,204,21,0.45)] transition-all duration-300"
                 data-historia-index={2}
                 onClick={() => setGalleryLightbox(historiaGallery[2])}
               >
@@ -537,7 +537,7 @@ export default function Home() {
             </div>
             <div className="flex flex-col gap-4 mt-10">
               <div
-                className="admin-editable group relative h-32 rounded-2xl overflow-hidden border border-white/6 cursor-zoom-in hover:border-yellow-400/40 hover:-translate-y-3 hover:scale-105 hover:shadow-[0_16px_40px_rgba(250,204,21,0.45)] transition-all duration-300"
+                className="admin-editable group relative aspect-square rounded-2xl overflow-hidden border border-white/6 cursor-zoom-in hover:border-yellow-400/40 hover:-translate-y-3 hover:scale-105 hover:shadow-[0_16px_40px_rgba(250,204,21,0.45)] transition-all duration-300"
                 data-historia-index={1}
                 onClick={() => setGalleryLightbox(historiaGallery[1])}
               >
@@ -664,9 +664,9 @@ export default function Home() {
 
               {/* Sedes */}
               {[
-                { title: 'SEDE CENTRAL', desc: 'Monte Caseros, Corrientes', address: 'Av. Libertador nº 1520', address2: 'Próximamente: Ruta Provincial 129 - KM 1,7', labelColor: '#F5C422', lat: -30.2597, lng: -57.6434 },
-                { title: 'SUCURSAL RIACHUELO', desc: 'Corrientes', address: 'Ruta Nacional nº 12 - KM 1013', labelColor: '#4A9EBF', lat: -27.36, lng: -58.7847 },
-                { title: 'SUCURSAL EZEIZA', desc: 'Buenos Aires', address: 'Av. Constitución (KM 33 de Autopista Ezeiza-Cañuelas)', labelColor: '#4ABF7A', lat: -34.8272, lng: -58.5347 },
+                { title: 'SEDE CENTRAL', desc: 'Monte Caseros, Corrientes', address: 'Av. Libertador nº 1520', address2: 'Próximamente: Ruta Provincial 129 - KM 1,7', labelColor: '#F5C422', lat: -30.2624734, lng: -57.6436151 },
+                { title: 'SUCURSAL RIACHUELO', desc: 'Corrientes', address: 'Ruta Nacional nº 12 - KM 1013', labelColor: '#4A9EBF', lat: -27.6330156, lng: -58.7380877 },
+                { title: 'SUCURSAL EZEIZA', desc: 'Buenos Aires', address: 'Av. Constitución (KM 33 de Autopista Ezeiza-Cañuelas)', labelColor: '#4ABF7A', lat: -34.8324837, lng: -58.5127149 },
               ].map((s, i) => (
                 <div key={i} className="flex-1 flex flex-col rounded-[12px] border border-[#2a2a2a] p-3.5 bg-[#1a1a1a] hover:-translate-y-1 hover:shadow-[0_6px_24px_rgba(0,0,0,0.3)] transition-all duration-300 cursor-default" style={{ '--hover-border': s.labelColor } as React.CSSProperties}>
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full mb-2 text-[11px] font-semibold uppercase tracking-[1px]" style={{ color: s.labelColor, border: `1px solid ${s.labelColor}33` }}>
