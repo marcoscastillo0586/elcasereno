@@ -376,6 +376,7 @@ export default function Home() {
         <div className="relative flex-1 flex items-center">
           <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 w-full py-24">
             <div className="flex flex-col items-center text-center max-w-2xl mx-auto">
+              <h1 className="sr-only">Transporte El Casereño S.A. — Transporte de cargas nacional e internacional en Monte Caseros, Corrientes</h1>
               <img
                 src="/images/logos/caserenoBlanco.png"
                 alt="Transporte El Casereño"
