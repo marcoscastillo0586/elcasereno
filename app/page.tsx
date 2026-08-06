@@ -521,34 +521,34 @@ export default function Home() {
           <div className="grid grid-cols-2 gap-4 mb-14">
             <div className="flex flex-col gap-4">
               <div
-                className="admin-editable group relative h-52 rounded-2xl overflow-hidden cursor-zoom-in"
+                className="admin-editable group relative h-52 rounded-2xl overflow-hidden border border-white/6 cursor-zoom-in hover:border-yellow-400/40 hover:-translate-y-3 hover:scale-105 hover:shadow-[0_16px_40px_rgba(250,204,21,0.45)] transition-all duration-300"
                 data-historia-index={0}
                 onClick={() => setGalleryLightbox(historiaGallery[0])}
               >
-                <img src={historiaGallery[0]} alt="Historia El Casereño 1" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                <img src={historiaGallery[0]} alt="Historia El Casereño 1" className="w-full h-full object-cover" />
               </div>
               <div
-                className="admin-editable group relative h-36 rounded-2xl overflow-hidden cursor-zoom-in"
+                className="admin-editable group relative h-36 rounded-2xl overflow-hidden border border-white/6 cursor-zoom-in hover:border-yellow-400/40 hover:-translate-y-3 hover:scale-105 hover:shadow-[0_16px_40px_rgba(250,204,21,0.45)] transition-all duration-300"
                 data-historia-index={2}
                 onClick={() => setGalleryLightbox(historiaGallery[2])}
               >
-                <img src={historiaGallery[2]} alt="Historia El Casereño 3" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                <img src={historiaGallery[2]} alt="Historia El Casereño 3" className="w-full h-full object-cover" />
               </div>
             </div>
             <div className="flex flex-col gap-4 mt-10">
               <div
-                className="admin-editable group relative h-32 rounded-2xl overflow-hidden cursor-zoom-in"
+                className="admin-editable group relative h-32 rounded-2xl overflow-hidden border border-white/6 cursor-zoom-in hover:border-yellow-400/40 hover:-translate-y-3 hover:scale-105 hover:shadow-[0_16px_40px_rgba(250,204,21,0.45)] transition-all duration-300"
                 data-historia-index={1}
                 onClick={() => setGalleryLightbox(historiaGallery[1])}
               >
-                <img src={historiaGallery[1]} alt="Historia El Casereño 2" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                <img src={historiaGallery[1]} alt="Historia El Casereño 2" className="w-full h-full object-cover" />
               </div>
               <div
-                className="admin-editable group relative h-48 rounded-2xl overflow-hidden cursor-zoom-in"
+                className="admin-editable group relative h-48 rounded-2xl overflow-hidden border border-white/6 cursor-zoom-in hover:border-yellow-400/40 hover:-translate-y-3 hover:scale-105 hover:shadow-[0_16px_40px_rgba(250,204,21,0.45)] transition-all duration-300"
                 data-historia-index={3}
                 onClick={() => setGalleryLightbox(historiaGallery[3])}
               >
-                <img src={historiaGallery[3]} alt="Historia El Casereño 4" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                <img src={historiaGallery[3]} alt="Historia El Casereño 4" className="w-full h-full object-cover" />
               </div>
             </div>
           </div>
