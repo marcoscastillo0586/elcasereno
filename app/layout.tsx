@@ -20,7 +20,7 @@ export const metadata = {
     apple: '/images/logo.png',
   },
   verification: {
-    google: 'kXgXmj54Ka6GiPVeCYh7c6gs35O3pdjZpFmCOmGEGbQ',
+    google: 'MnnzxIyQyuTjCh1FLHS7tzCljMkk470qBh_LXlHVv5A',
   },
   alternates: {
     canonical: '/',
