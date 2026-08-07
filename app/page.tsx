@@ -46,7 +46,15 @@ export default function Home() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(patch),
-    }).catch(() => { /* keep local state even if the save fails */ })
+    }).then(res => {
+      if (!res.ok) {
+        alert(res.status === 401
+          ? 'Tu sesión de administrador venció. Volvé a iniciar sesión y repetí el cambio.'
+          : 'No se pudo guardar el cambio en el servidor. Probá de nuevo en unos segundos.')
+      }
+    }).catch(() => {
+      alert('No se pudo guardar el cambio: revisá tu conexión a internet.')
+    })
   }
 
   useEffect(() => {

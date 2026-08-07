@@ -135,7 +135,17 @@ export default function AdminBar() {
         }
       }
       const resp = await fetch('/api/admin/upload', { method: 'POST', body: fd })
-      const data = await resp.json()
+      if (resp.status === 401) {
+        alert('Tu sesión de administrador venció. Volvé a iniciar sesión y repetí el cambio.')
+        return
+      }
+      let data: any
+      try {
+        data = await resp.json()
+      } catch {
+        alert('No se pudo guardar el cambio en el servidor. Probá de nuevo en unos segundos.')
+        return
+      }
       if (data.ok && data.file) {
         if (t.type === 'image') {
           // Delete physical old image if replaced with a new file
@@ -245,7 +255,17 @@ export default function AdminBar() {
       fd.append('target', 'images/clientes')
       const fileName = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ')
       const resp = await fetch('/api/admin/upload', { method: 'POST', body: fd })
-      const data = await resp.json()
+      if (resp.status === 401) {
+        alert('Tu sesión de administrador venció. Volvé a iniciar sesión y repetí el cambio.')
+        return
+      }
+      let data: any
+      try {
+        data = await resp.json()
+      } catch {
+        alert('No se pudo guardar el cambio en el servidor. Probá de nuevo en unos segundos.')
+        return
+      }
       if (data.ok && data.file) {
         dispatchAddLogo(data.file, fileName || 'Nuevo cliente')
         setToast('Logo agregado en public/images/clientes')
@@ -289,7 +309,17 @@ export default function AdminBar() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ heroVideoId: videoId }),
     })
-    const data = await resp.json()
+    if (resp.status === 401) {
+      alert('Tu sesión de administrador venció. Volvé a iniciar sesión y repetí el cambio.')
+      return
+    }
+    let data: any
+    try {
+      data = await resp.json()
+    } catch {
+      alert('No se pudo guardar el video en el servidor. Probá de nuevo en unos segundos.')
+      return
+    }
     if (!data.ok) {
       alert('No se pudo guardar el video: ' + (data.error || 'unknown'))
       return
