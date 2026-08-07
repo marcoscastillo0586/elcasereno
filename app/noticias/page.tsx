@@ -41,12 +41,14 @@ const defaultNoticias: Noticia[] = [
   },
 ]
 
-const categoriaColor: Record<string, string> = {
-  Flota: 'bg-yellow-400/15 text-yellow-600 border border-yellow-400/30',
-  Operaciones: 'bg-blue-400/15 text-blue-600 border border-blue-400/30',
-  Empresa: 'bg-green-400/15 text-green-600 border border-green-400/30',
-}
-const categoriaColorDefault = 'bg-gray-400/15 text-gray-600 border border-gray-400/30'
+// Color fijo por posición de la novedad (1ª, 2ª, 3ª), no por el texto de la
+// categoría — así el admin puede escribir cualquier categoría sin que la
+// etiqueta se quede gris.
+const categoriaColorByPosition = [
+  'bg-yellow-400/15 text-yellow-600 border border-yellow-400/30',
+  'bg-blue-400/15 text-blue-600 border border-blue-400/30',
+  'bg-green-400/15 text-green-600 border border-green-400/30',
+]
 
 function formatFecha(fecha: string) {
   const parsed = new Date(fecha)
@@ -190,7 +192,7 @@ export default function Noticias() {
       {/* NOTICIAS */}
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {noticias.map(noticia => (
+          {noticias.map((noticia, index) => (
             <article key={noticia.id} className="relative bg-[#1e1e1e] rounded-2xl border border-white/7 overflow-hidden hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] hover:-translate-y-1 transition-all duration-300">
               <div className="admin-editable relative h-48 overflow-hidden" data-noticia-id={noticia.id}>
                 <img
@@ -233,7 +235,7 @@ export default function Noticias() {
                 ) : (
                   <>
                     <div className="flex items-center gap-3 mb-3">
-                      <span className={`text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full ${categoriaColor[noticia.categoria] || categoriaColorDefault}`}>
+                      <span className={`text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full ${categoriaColorByPosition[index % categoriaColorByPosition.length]}`}>
                         <Tag size={9} className="inline mr-1" />{noticia.categoria}
                       </span>
                       <span className="text-[#999] text-[11px] flex items-center gap-1">
