@@ -193,7 +193,7 @@ export default function Noticias() {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {noticias.map((noticia, index) => (
-            <article key={noticia.id} className="relative bg-[#1e1e1e] rounded-2xl border border-white/7 overflow-hidden hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] hover:-translate-y-1 transition-all duration-300">
+            <article key={noticia.id} className="relative bg-[#1e1e1e] rounded-2xl border border-white/7 overflow-hidden hover:border-yellow-400/40 hover:-translate-y-3 hover:scale-105 hover:shadow-[0_16px_40px_rgba(250,204,21,0.45)] transition-all duration-300">
               <div className="admin-editable relative h-48 overflow-hidden" data-noticia-id={noticia.id}>
                 <img
                   src={noticia.imagen}
