@@ -636,7 +636,10 @@ export default function Home() {
                     <h3 className="text-white font-bold text-lg leading-tight tracking-tight mb-3">{t.title}</h3>
                     <div className="h-px bg-[#2a2a2a]" />
                   </div>
-                  <div className="admin-editable relative aspect-[4/3] overflow-hidden">
+                  <div
+                    className="admin-editable relative aspect-[4/3] overflow-hidden cursor-zoom-in"
+                    onClick={() => setGalleryLightbox(t.img)}
+                  >
                     <img
                       src={t.img}
                       alt={t.title}
