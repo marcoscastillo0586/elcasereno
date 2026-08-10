@@ -349,29 +349,12 @@ body {
   border-bottom-color: #e0e0d8 !important;
 }
 
-[data-theme="light"] nav a:not(.bg-yellow-400) {
+[data-theme="light"] nav a:not(.bg-yellow-400):not(.bg-black *) {
   color: #333333 !important;
 }
 
-[data-theme="light"] nav .text-white {
+[data-theme="light"] nav .text-white:not(.bg-black *) {
   color: #333333 !important;
-}
-
-[data-theme="light"] nav .bg-black {
-  background-color: #000000 !important;
-}
-
-[data-theme="light"] nav .bg-black.border-gray-800 {
-  border-top-color: #1f2937 !important;
-}
-
-[data-theme="light"] nav .bg-black a,
-[data-theme="light"] nav .bg-black .text-white {
-  color: #ffffff !important;
-}
-
-[data-theme="light"] nav .bg-black a:hover {
-  color: #facc15 !important;
 }
 
 /* Cards y contenedores oscuros */
@@ -404,20 +387,20 @@ body {
   background-color: rgba(30, 28, 25, 0.82) !important;
 }
 
-/* Texto — excluimos el hero (#inicio) para que siga blanco sobre el video */
-[data-theme="light"] .text-white:not(#inicio *):not(.bg-yellow-400):not(button.bg-yellow-400) {
+/* Texto — excluimos el hero (#inicio) y contenedores oscuros (.bg-black) para que siga blanco sobre el video/fondo oscuro */
+[data-theme="light"] .text-white:not(#inicio *):not(.bg-black *):not(.bg-yellow-400):not(button.bg-yellow-400) {
   color: #111111 !important;
 }
 
-[data-theme="light"] .text-gray-300:not(#inicio *) {
+[data-theme="light"] .text-gray-300:not(#inicio *):not(.bg-black *) {
   color: #444444 !important;
 }
 
-[data-theme="light"] .text-gray-400:not(#inicio *) {
+[data-theme="light"] .text-gray-400:not(#inicio *):not(.bg-black *) {
   color: #555555 !important;
 }
 
-[data-theme="light"] .text-gray-500:not(#inicio *) {
+[data-theme="light"] .text-gray-500:not(#inicio *):not(.bg-black *) {
   color: #666666 !important;
 }
 
@@ -442,7 +425,7 @@ body {
   border-color: #e0e0e0 !important;
 }
 
-[data-theme="light"] .border-gray-800 {
+[data-theme="light"] .border-gray-800:not(.bg-black) {
   border-color: #e8e8e8 !important;
 }
 
