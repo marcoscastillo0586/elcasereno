@@ -565,7 +565,7 @@ export default function Home() {
           {/* Contenido */}
           <div className="w-full">
             <p className="text-gray-400 text-base leading-relaxed mb-5 text-justify">
-              Fundada en 2007 por José Luis Gorbeña en Monte Caseros, Corrientes, El Casereño nació de una visión simple: que la fruta fina del litoral merecía llegar fresca a destino. Empezamos transportando arándanos con 3 camiones. Hoy somos más de 55 unidades y seguimos siendo la misma familia.
+              Fundada en 2007 por José Luis Gorbeña (padre) en Monte Caseros, Corrientes, El Casereño nació de una visión simple: que la fruta fina del litoral merecía llegar fresca a destino. Empezamos transportando arándanos con 3 camiones. Hoy somos más de 55 unidades y seguimos siendo la misma familia.
             </p>
             <p className="text-gray-400 text-base leading-relaxed mb-8 text-justify">
               Operamos con cargas diarias en modalidad punto a punto y/o repartos, cubriendo todo el territorio argentino y países limítrofes.
