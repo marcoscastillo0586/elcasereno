@@ -164,7 +164,7 @@ export default function Home() {
   ]
 
   const timeline = [
-    { year: '1983', title: 'Grupo JLG', desc: 'Fundación del Autoservicio y Supermercado por José Luis Gorbeña y Verónica Roverano', photos: ['https://picsum.photos/seed/jlg83a/600/400', 'https://picsum.photos/seed/jlg83b/600/400'] },
+    { year: '1983', title: 'Grupo JLG', desc: 'Fundación del Autoservicio y Supermercado por José Luis Gorbeña (padre) y Verónica Roverano', photos: ['https://picsum.photos/seed/jlg83a/600/400', 'https://picsum.photos/seed/jlg83b/600/400'] },
     { year: '2006', title: 'Primeros camiones', desc: 'Foco en distribución de arándanos con 2 camiones desde Concordia', photos: ['https://picsum.photos/seed/cas06a/600/400', 'https://picsum.photos/seed/cas06b/600/400'] },
     { year: '2007', title: 'Nace El Casereño', desc: 'Fundación formal de Transporte El Casereño S.A. con 4 unidades en Monte Caseros', photos: ['/images/casereno-bandera.jpg.jpeg', 'https://picsum.photos/seed/cas07b/600/400'] },
     { year: '2009', title: 'Expansión Brasil', desc: 'Inicio de operaciones de logística internacional con Brasil', photos: ['https://picsum.photos/seed/cas09a/600/400', 'https://picsum.photos/seed/cas09b/600/400'] },
@@ -568,7 +568,7 @@ export default function Home() {
               Fundada en 2007 por José Luis Gorbeña en Monte Caseros, Corrientes, El Casereño nació de una visión simple: que la fruta fina del litoral merecía llegar fresca a destino. Empezamos transportando arándanos con 3 camiones. Hoy somos más de 55 unidades y seguimos siendo la misma familia.
             </p>
             <p className="text-gray-400 text-base leading-relaxed mb-8 text-justify">
-              Operamos con cargas diarias en modalidad punto a punto y/o reparticiones, cubriendo todo el territorio argentino y países limítrofes.
+              Operamos con cargas diarias en modalidad punto a punto y/o repartos, cubriendo todo el territorio argentino y países limítrofes.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {features.map((feature, index) => (
