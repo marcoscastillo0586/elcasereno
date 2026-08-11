@@ -1015,7 +1015,7 @@ export default function Home() {
       {/* LIGHTBOX GALERIA HISTORIA */}
       {galleryLightbox && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm cursor-zoom-out" onClick={() => setGalleryLightbox(null)}>
-          <button onClick={() => setGalleryLightbox(null)} className="absolute top-5 right-5 text-white hover:text-yellow-400 transition-colors z-10" aria-label="Cerrar">
+          <button onClick={() => setGalleryLightbox(null)} className="absolute top-5 right-5 text-[#ffffff] hover:text-yellow-400 transition-colors z-10" aria-label="Cerrar">
             <X size={28} />
           </button>
           <img
