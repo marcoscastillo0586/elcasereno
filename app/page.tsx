@@ -394,7 +394,7 @@ export default function Home() {
                 <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse"></div>
                 <span className="text-yellow-400 text-xs font-medium tracking-wide">Monte Caseros, Corrientes · Argentina</span>
               </div>
-              <p className="font-balloon text-gray-300 text-base md:text-lg mb-10 leading-relaxed">
+              <p className="text-gray-300 text-base md:text-lg mb-10 leading-relaxed">
                 Transporte Nacional e Internacional.<br />
                 Conectando destinos con confianza y responsabilidad.
               </p>
