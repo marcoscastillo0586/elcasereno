@@ -84,9 +84,10 @@ export default function MapArgentina() {
       map.createPane('routesPane')
       map.getPane('routesPane')!.style.zIndex = '450'
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 10,
-        subdomains: 'abcd',
+        subdomains: 'abc',
+        className: 'map-tiles-dark',
       }).addTo(map)
 
       // Cargar GeoJSON de países con colores sólidos elegantes
@@ -245,6 +246,9 @@ export default function MapArgentina() {
       <style>{`
         .leaflet-container {
           background: #111 !important;
+        }
+        .map-tiles-dark {
+          filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.6);
         }
         .leaflet-tooltip-custom {
           background: #1a1a1a !important;

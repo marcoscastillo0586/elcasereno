@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(curl.exe -s -o NUL -w \"%{http_code} -> %{redirect_url}\\\\n\" http://www.elcasereno.com.ar/)"
+    ]
+  }
+}
