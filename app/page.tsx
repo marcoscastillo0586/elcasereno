@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Menu, X, CheckCircle, Thermometer, Globe, Shield, Clock, Users, Star, Sun, Moon, Camera, MapPin } from 'lucide-react'
+import { Menu, X, CheckCircle, Thermometer, Globe, Shield, Clock, Users, Star, Sun, Moon, Camera, MapPin, Phone } from 'lucide-react'
 import MapArgentina from './components/MapArgentina'
 import AdminBar from './components/AdminBar'
 
@@ -320,6 +320,7 @@ export default function Home() {
     { title: 'Tractores', img: '/images/flota/tractores.jpg' },
     { title: 'Semiremolques Térmicos', img: '/images/flota/semiremolques-termicos.jpg' },
     { title: 'Chasis / Acoplados', img: '/images/flota/chasis-acoplados.jpg' },
+    { title: 'Bitrenes', img: '/images/flota/bitren.jpg' },
   ]
 
   return (
@@ -629,7 +630,7 @@ export default function Home() {
 
           <div>
             <p className="text-yellow-400 text-xs font-semibold uppercase tracking-widest mb-6">Tipos de unidades</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {tiposUnidades.map(t => (
                 <div key={t.title} className="group rounded-[12px] overflow-hidden border border-[#2a2a2a] bg-[#1a1a1a] hover:border-yellow-400/40 hover:-translate-y-1 transition-all duration-300">
                   <div className="p-5 pb-4">
@@ -637,7 +638,7 @@ export default function Home() {
                     <div className="h-px bg-[#2a2a2a]" />
                   </div>
                   <div
-                    className="admin-editable relative aspect-[4/3] overflow-hidden cursor-zoom-in"
+                    className="admin-editable relative aspect-[16/9] overflow-hidden cursor-zoom-in"
                     onClick={() => setGalleryLightbox(t.img)}
                   >
                     <img
@@ -676,8 +677,8 @@ export default function Home() {
 
               {/* Sedes */}
               {[
-                { title: 'SEDE CENTRAL', desc: 'Monte Caseros, Corrientes', address: 'Av. Libertador nº 1520', address2: 'Próximamente: Ruta Provincial 129 - KM 1,7', labelColor: '#F5C422', lat: -30.2624734, lng: -57.6436151 },
-                { title: 'SUCURSAL RIACHUELO', desc: 'Corrientes', address: 'Ruta Nacional nº 12 - KM 1013', labelColor: '#4A9EBF', lat: -27.6330156, lng: -58.7380877 },
+                { title: 'SEDE CENTRAL', desc: 'Monte Caseros, Corrientes', address: 'Av. Libertador nº 1280', address2: 'Próximamente: Ruta Provincial 129 - KM 1,7', phone: '3775-408417', labelColor: '#F5C422', lat: -30.2624734, lng: -57.6436151 },
+                { title: 'SUCURSAL RIACHUELO', desc: 'Corrientes', address: 'Ruta Nacional nº 12 - KM 1013', phone: '3794-237457', labelColor: '#4A9EBF', lat: -27.6330156, lng: -58.7380877 },
                 { title: 'SUCURSAL EZEIZA', desc: 'Buenos Aires', address: 'Av. Constitución (KM 33 de Autopista Ezeiza-Cañuelas)', labelColor: '#4ABF7A', lat: -34.8324837, lng: -58.5127149 },
               ].map((s, i) => (
                 <div key={i} className="flex-1 flex flex-col rounded-[12px] border border-[#2a2a2a] p-3.5 bg-[#1a1a1a] hover:-translate-y-1 hover:shadow-[0_6px_24px_rgba(0,0,0,0.3)] transition-all duration-300 cursor-default" style={{ '--hover-border': s.labelColor } as React.CSSProperties}>
@@ -687,8 +688,16 @@ export default function Home() {
                   </div>
                   <div className="h-px bg-[#3a3a3a] mb-2"></div>
                   <p className="text-white font-semibold text-sm">{s.desc}</p>
-                  <p className={`text-[#888] text-xs mt-0.5 ${s.address2 ? '' : 'mb-2.5'}`}>{s.address}</p>
-                  {s.address2 && <p className="text-[#666] text-xs italic mt-0.5 mb-2.5">{s.address2}</p>}
+                  <div className="mb-2.5">
+                    <p className="text-[#888] text-xs mt-0.5">{s.address}</p>
+                    {s.address2 && <p className="text-[#666] text-xs italic mt-0.5">{s.address2}</p>}
+                    {s.phone && (
+                      <a href={`tel:+54${s.phone.replace(/\D/g, '')}`} className="inline-flex items-center gap-1 text-[#888] text-xs mt-0.5 hover:underline">
+                        <Phone size={11} />
+                        {s.phone}
+                      </a>
+                    )}
+                  </div>
                   <a
                     href={`https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`}
                     target="_blank"
@@ -853,6 +862,14 @@ export default function Home() {
                 <div className="flex items-center gap-3 text-gray-300 text-sm">
                   <svg className="text-yellow-400 flex-shrink-0" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
                   Monte Caseros, Corrientes · Argentina
+                </div>
+                <div className="flex items-start gap-3 text-gray-300 text-sm">
+                  <svg className="text-yellow-400 flex-shrink-0 mt-0.5" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                  <div>
+                    <span className="block">Horarios de atención</span>
+                    <span className="block text-gray-500 text-xs mt-1">Lunes a viernes de 08 a 12 hs y de 15 a 19 hs</span>
+                    <span className="block text-gray-500 text-xs">Sábados de 08 a 12 hs</span>
+                  </div>
                 </div>
               </div>
 

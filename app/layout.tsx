@@ -60,7 +60,7 @@ const jsonLd = {
   email: 'recepcion@grupo-jlg.com',
   address: {
     '@type': 'PostalAddress',
-    streetAddress: 'Av. Libertador nº 1520',
+    streetAddress: 'Av. Libertador nº 1280',
     addressLocality: 'Monte Caseros',
     addressRegion: 'Corrientes',
     addressCountry: 'AR',
