@@ -329,7 +329,7 @@ export default function AdminBar() {
 
     const heroIframe = document.querySelector('#hero-video') as HTMLIFrameElement | null
     if (heroIframe) {
-      heroIframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1`
+      heroIframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&vq=hd1080`
     }
 
     setToast('Video de portada actualizado')
