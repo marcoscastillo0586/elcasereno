@@ -68,7 +68,7 @@ const jsonLd = {
   areaServed: ['AR', 'BR', 'UY', 'CL', 'PY', 'BO'],
   sameAs: [
     'https://www.facebook.com/share/1H3te6ykUX/',
-    'https://www.instagram.com/transporte.casereno.sa',
+    'https://www.instagram.com/transporte.elcasereno',
   ],
 }
 
